@@ -12,6 +12,7 @@ function App()
     const phaserRef = useRef<IRefPhaserGame | null>(null);
     const [spritePosition, setSpritePosition] = useState({ x: 0, y: 0 });
     const [message, setMessage] = useState("");
+    const [name, setName] = useState("");
 
     const changeScene = () => {
 
@@ -96,9 +97,21 @@ function App()
 
             if (scene && scene.scene.key === 'Chat')
             {
-                scene.moveText();
+                scene.moveRight();
             }
         }
+    }
+
+    const changeName = () => {
+        if (phaserRef.current)
+            {
+                const scene = phaserRef.current.scene as Chat;
+    
+                if (scene && scene.scene.key === 'Chat')
+                {
+                    scene.changeName(name);
+                }
+            }
     }
 
     // Event emitted from the PhaserGame component
@@ -128,10 +141,16 @@ function App()
                     <input value={message} onChange={(e) => setMessage(e.target.value)} />
                 </div>
                 <div>
+                    <input value={name} onChange={(e) => setName(e.target.value)} />
+                </div>
+                <div>
                     <button className="button" onClick={sendMsg}>Send msg</button>
                 </div>
                 <div>
                     <button className="button" onClick={moveText}>move text</button>
+                </div>
+                <div>
+                    <button className="button" onClick={changeName}>Change name</button>
                 </div>
             </div>
         </div>

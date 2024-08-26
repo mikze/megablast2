@@ -22,7 +22,7 @@
         "typescript"
     ],
     "scripts": {
-        "dev": "next dev -p 8080 --hostname 192.168.100.100",
+        "dev": "next dev -p 8080 --hostname 192.168.100.10",
         "build": "next build"
     },
     "dependencies": {
