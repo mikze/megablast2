@@ -139,17 +139,13 @@ function App()
                 </div>
                 <div>
                     <input value={message} onChange={(e) => setMessage(e.target.value)} />
-                </div>
-                <div>
-                    <input value={name} onChange={(e) => setName(e.target.value)} />
-                </div>
-                <div>
                     <button className="button" onClick={sendMsg}>Send msg</button>
                 </div>
                 <div>
                     <button className="button" onClick={moveText}>move text</button>
                 </div>
                 <div>
+                    <input value={name} onChange={(e) => setName(e.target.value)} />
                     <button className="button" onClick={changeName}>Change name</button>
                 </div>
             </div>
