@@ -22,7 +22,7 @@ public class HubGameService : BackgroundService
             {
                 try
                 {
-                    foreach(var player in Game.Players.Where(p => p.MoveDirection != MoveDirection.none))
+                    foreach(var player in Game.Players.Where(p => p.Live && p.MoveDirection != MoveDirection.none))
                     {
                         player.Moved = true;
                         player.MovePlayer(player.MoveDirection);

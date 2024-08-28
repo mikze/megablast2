@@ -9,7 +9,7 @@ public class ChatHub : Hub
     }
 
     public async Task SendMessage(string user, string message)
-        => await Clients.All.SendAsync("ReceiveMessage", user, message);
+        => await Clients.All.SendAsync("ReceiveMessage", Context.ConnectionId, message);
 
     public void MovePlayer(int moveDirection)
     {      
@@ -28,7 +28,7 @@ public class ChatHub : Hub
     {
         Game.AddPlayer(new Player() { Id = Context.ConnectionId, Name = "mikze", PosX = 200, PosY = 200 });
 
-        Clients.All.SendAsync("Connected", Game.Players.ToArray(), Context.ConnectionId);
+        Clients.All.SendAsync("Connected", Game.Players.Where(p => p.Live).ToArray(), Context.ConnectionId);
         Game.GenerateMap();
         Clients.Caller.SendAsync("GetMap", Game.Map);
         return base.OnConnectedAsync();
