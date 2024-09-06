@@ -18,6 +18,13 @@ public class ChatHub : Hub
             player.MoveDirection = (MoveDirection)moveDirection;
     }
 
+    public void PlantBomb()
+    {      
+        var player = Game.Players.First(p => p.Id == Context.ConnectionId);
+        Clients.All.SendAsync("BombPlanted", Context.ConnectionId);
+        player.PlantBomb();
+    }
+
     public void ChangeName(string newName)
     {
         Game.ChangeName(Context.ConnectionId, newName);

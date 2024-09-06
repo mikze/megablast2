@@ -1,5 +1,5 @@
 import { HubConnection, HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
-import { Chat } from "../scenes/Chat";
+import { GameLevel } from "../scenes/Chat";
 
 type PlayerModel
 = 
@@ -12,10 +12,10 @@ export class Connection
 {
     connection: HubConnection;
 
-    constructor(chat: Chat)
+    constructor(chat: GameLevel)
     {
         this.connection = new HubConnectionBuilder()
-            .withUrl("http://192.168.100.10:5166/Chat")
+            .withUrl("http://192.168.100.12:5166/Chat")
             .configureLogging(LogLevel.Information)
             .build();
 
@@ -61,6 +61,10 @@ export class Connection
         this.connection.on("GetMap", (map : number[][]) => {
             chat.setMap(map);
         })
+
+        this.connection.on("BombPlanted", (id : string) => {
+            chat.bombPlanted(id)
+        });
 
         // Start the connection.
         start(this.connection);

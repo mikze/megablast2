@@ -34,6 +34,58 @@ export class Preloader extends Scene
 
         this.load.image('logo', 'logo.png');
         this.load.image('star', 'star.png');
+        this.load.spritesheet("playerSprite", "player.png",
+            {
+              frameHeight: 63,
+              frameWidth: 63
+            }
+          );
+      
+          this.load.spritesheet("solidWall", "SolidWall.png",
+            {
+              frameHeight: 63,
+              frameWidth: 63
+            }
+          );
+      
+          this.load.spritesheet("destructiveWall", "DestructiveWall.png",
+            {
+              frameHeight: 63,
+              frameWidth: 63
+            }
+          );
+      
+          this.load.spritesheet("bomb", "bomb.png",
+            {
+              frameHeight: 63,
+              frameWidth: 63
+            }
+          );
+
+          this.load.spritesheet("fire", "fire.png",
+            {
+              frameHeight: 63,
+              frameWidth: 63
+            }
+          );
+
+          this.loadTiledSheet("otsp_tiles_01");
+          this.loadTiledSheet("otsp_town_01");
+    }
+
+    loadTiledSheet(nameSheet: string)
+    {
+      this.load.image(nameSheet, nameSheet + ".png");
+  
+      this.load.once("filecomplete-image-" + nameSheet, () => {
+        const tex = this.textures.get(nameSheet);
+    
+         // add(name, sourceIndex, x, y, width, height)
+        for (let j = 0; j < 64; j++)
+          for (let i = 0; i < 16; i++) {
+            const frame = tex.add(i + j * 16, 0, i * 32, j * 32, 32, 32);
+        }
+      });
     }
 
     create ()
@@ -42,6 +94,11 @@ export class Preloader extends Scene
         //  For example, you can define global animations here, so we can use them in other scenes.
 
         //  Move to the MainMenu. You could also swap this for a Scene Transition, such as a camera fade.
-        this.scene.start('MainMenu');
+        this.scene.start('Game');
+    }
+
+    changeScene ()
+    {
+        this.scene.start('GameLevel');
     }
 }

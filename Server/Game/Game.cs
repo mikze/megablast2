@@ -11,7 +11,7 @@ public enum MoveDirection
 }
 public static class Game
 {
-    public static int[][] Map;
+    public static int[][]? Map;
     public static List<IEntity> Entities = new List<IEntity>();
     public static ConcurrentBag<Player> Players { get; set; } = new ConcurrentBag<Player>();
     public static List<IEvent> Events {get; set; } = new List<IEvent>();
@@ -24,11 +24,11 @@ public static class Game
                                  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
                                  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
                                  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                                 [1,0,0,0,0,0,0,0,4,4,4,0,0,0,0,0,1],
                                  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
                                  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
                                  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-                                 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-                                 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                                 [1,0,0,0,0,0,0,4,4,4,4,4,4,0,0,0,1],
                                  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
                                  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
                                  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
@@ -47,7 +47,8 @@ public static class Game
                     var wall = new Wall()
                     {
                         PosX = X,
-                        PosY = Y
+                        PosY = Y,
+                        Destructible = x != 1
                     };
                     Entities.Add(wall);
                 }
@@ -87,21 +88,7 @@ public static class Game
         if (player != null)
             player.Name = newName;
     }
-
-    public static void AddEvent(IEvent @event)
-    {
-        try
-        {
-            Thread.Sleep(10);
-        if(@event is IMovePlayer)
-        {
-            var a = (IMovePlayer)@event;
-            if(Events.Cast<IMovePlayer>().Where(x => x.Player == a.Player).Count() > 50)
-                return;
-        }
-        
-        Events.Add(@event);
-        }
-        catch{}
-    }
+    
+    public static void PlantBomb(int x, int y) 
+        => Bomb.Plant(x, y).Start();
 }

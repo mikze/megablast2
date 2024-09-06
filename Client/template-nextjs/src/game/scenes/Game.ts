@@ -31,6 +31,6 @@ export class Game extends Scene
 
     changeScene ()
     {
-        this.scene.start('Chat');
+        this.scene.start('GameLevel');
     }
 }

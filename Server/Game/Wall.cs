@@ -1,5 +1,6 @@
 public class Wall : IEntity
 {
+    public bool Destructible { get; set; } = false;
     public bool Collision { get; set; } = true;
     public int PosX { get; set; }
     public int PosY { get; set; }

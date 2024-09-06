@@ -1,3 +1,4 @@
+
 public class Player : IEntity
 {
     public int Speed { get; set; } = 1;
@@ -47,5 +48,10 @@ public class Player : IEntity
                 break;
             }
         }
+    }
+
+    internal void PlantBomb()
+    {
+        Game.PlantBomb(PosX, PosY);
     }
 }

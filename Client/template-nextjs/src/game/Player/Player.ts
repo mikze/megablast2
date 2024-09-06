@@ -1,4 +1,5 @@
 import { Scene } from "phaser"
+import { Bomb } from "./Bomb"
 
   
   export class Player {
@@ -14,7 +15,7 @@ import { Scene } from "phaser"
     constructor(id : string, name : string, x : number, y : number, scene: Scene) {
       this.id = id;
       this.textName = scene.add.text(x, y + 20, name, {
-        fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
+        fontFamily: 'Arial Black', fontSize: 18, color: '#ffffff',
         stroke: '#000000', strokeThickness: 8,
         align: 'center'
       }).setOrigin(0.5).setDepth(100);
@@ -26,13 +27,17 @@ import { Scene } from "phaser"
       this.textName.x = x;
       this.textName.y = y - 20;
       this.scene = scene;
+      this.name = name;
     }
-
+    PlantBomb()
+    {
+      new Bomb(this.x, this.y, this.scene).PlantBomb()
+    }
     Say(message : string)
     {
-      let msg = this.scene.add.text(this.x, this.y + 20, message, {
-        fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
-        stroke: '#000000', strokeThickness: 8,
+      let msg = this.scene.add.text(this.x, this.y + 20, this.name+": "+message, {
+        fontFamily: 'Arial Black', fontSize: 11, color: '#71e023',
+        stroke: '#000000', strokeThickness: 7,
         align: 'center'
       }).setOrigin(0.5).setDepth(100);
 

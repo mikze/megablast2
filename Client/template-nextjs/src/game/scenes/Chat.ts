@@ -6,7 +6,7 @@ import { MapGenerator } from './MapGenerator';
 import { HubConnectionState } from '@microsoft/signalr';
 
 
-export class Chat extends Scene {
+export class GameLevel extends Scene {
 
   camera: Phaser.Cameras.Scene2D.Camera;
   background: Phaser.GameObjects.Image;
@@ -15,6 +15,7 @@ export class Chat extends Scene {
   keyS: Phaser.Input.Keyboard.Key | undefined;
   keyD: Phaser.Input.Keyboard.Key | undefined;
   keyW: Phaser.Input.Keyboard.Key | undefined;
+  keySpace: Phaser.Input.Keyboard.Key | undefined;
   playerId: string | null
   players: Player[];
   mapGenerator: MapGenerator;
@@ -22,7 +23,7 @@ export class Chat extends Scene {
 
 
   constructor() {
-    super('Chat');
+    super('GameLevel');
     this.players = new Array<Player>();
   }
 
@@ -30,7 +31,6 @@ export class Chat extends Scene {
     this.mapGenerator.GenerateMap(map);
   }
   sendMsg(user: string, message: string) {
-    console.log('send msg');
     this.connection.connection.invoke("SendMessage", user, message);
   }
 
@@ -58,6 +58,10 @@ export class Chat extends Scene {
     this.connection.connection.invoke("MovePlayer", 4);
   }
 
+  plantBomb() {
+    this.connection.connection.invoke("PlantBomb");
+  }
+
   recMsg(userId: string, message: string) {
     this.players.find(p => p.id === userId)?.Say(message);
   }
@@ -80,6 +84,11 @@ export class Chat extends Scene {
     this.playerId = id;
 }
 
+bombPlanted(id :string)
+{
+  this.players.find(p => p.id === id)?.PlantBomb();
+}
+
   setPlayers(players: Array<Player>) {
     players.map(p => {
       if (!this.players.some(pl => pl.id === p.id))
@@ -95,37 +104,25 @@ export class Chat extends Scene {
   }
 
   preload() {
-    this.load.spritesheet("playerSprite", "assets/player.png",
-      {
-        frameHeight: 63,
-        frameWidth: 63
-      }
-    );
+    this.asyncLoad();
+  }
 
-    this.load.spritesheet("solidWall", "assets/SolidWall.png",
-      {
-        frameHeight: 63,
-        frameWidth: 63
-      }
-    );
-
-    this.connection = new Connection(this);
-    this.mapGenerator = new MapGenerator(this);
+  async asyncLoad()
+  {
+    this.connection = await new Connection(this);
+    this.mapGenerator = await new MapGenerator(this);
   }
 
   create() {
     this.camera = this.cameras.main;
-    this.camera.setBackgroundColor(0x00ff00);
+    this.camera.setBackgroundColor("rgb(55, 87, 248)");
 
-    this.background = this.add.image(512, 384, 'background');
-    this.background.setAlpha(0.5);
-
-    this.keyA = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.A);
-    this.keyS = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.S);
-    this.keyD = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.D);
-    this.keyW = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.W);
-
-
+    this.keyA = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
+    this.keyS = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
+    this.keyD = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
+    this.keyW = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
+    this.keySpace = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
+    
 
     this.anims.create({
       key: "walkRight",
@@ -167,12 +164,15 @@ export class Chat extends Scene {
       frameRate: 20,
     });
 
+    this.background = this.add.image(512, 384, 'background');
+    this.background.setAlpha(0.5);
+
     EventBus.emit('current-scene-ready', this);
 
   }
 
   update(time: number, delta: number): void {
-    if(this.connection.connection.state === HubConnectionState.Connected)
+    if(this.connection?.connection.state === HubConnectionState.Connected)
     {
     if (this.keyA?.isDown)
       this.moveLeft();
@@ -184,6 +184,8 @@ export class Chat extends Scene {
       this.moveUp();
     if(this.keyW?.isUp && this.keyS?.isUp && this.keyD?.isUp && this.keyA?.isUp)
       this.moveStop();
+    if(this.keySpace?.isDown)
+      this.plantBomb();
   }
   }
 

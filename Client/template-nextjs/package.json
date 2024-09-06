@@ -22,11 +22,14 @@
         "typescript"
     ],
     "scripts": {
-        "dev": "next dev -p 8080 --hostname 192.168.100.10",
+        "dev": "next dev -p 8080 --hostname 192.168.100.12",
         "build": "next build"
     },
     "dependencies": {
+        "@emotion/react": "^11.13.3",
+        "@emotion/styled": "^11.13.0",
         "@microsoft/signalr": "^8.0.7",
+        "@mui/material": "^6.0.1",
         "next": "14.2.3",
         "phaser": "^3.80.1",
         "react": "^18",
