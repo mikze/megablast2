@@ -7,11 +7,12 @@ public class Player : IEntity
     public int PosY { get; set; }
     public required string Id { get; init; }
     public bool Collision { get; set; } = true;
-    public int Width { get; set; } = 50;
-    public int Height { get; set; } = 50;
+    public int Width { get; set; } = 32;
+    public int Height { get; set; } = 32;
     public bool Moved { get; set; }
     public MoveDirection MoveDirection { get; set; }
     public bool Live { get; internal set; } = true;
+    public bool Destroyed { get; set; }
 
     public bool CheckCollistion(IEntity entity)
     {
@@ -39,7 +40,7 @@ public class Player : IEntity
                 break;
         }
 
-        foreach(var entity in Game.Entities.Where(e => e != this && e.Collision))
+        foreach(var entity in Game.GetEntities().Where(e => e != this && e.Collision))
         {
             if(entity.CheckCollistion(this))
             {
@@ -52,6 +53,6 @@ public class Player : IEntity
 
     internal void PlantBomb()
     {
-        Game.PlantBomb(PosX, PosY);
+        Game.PlantBomb(PosX+16, PosY+16);
     }
 }

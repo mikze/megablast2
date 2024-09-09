@@ -9,12 +9,23 @@ public class ChatHub : Hub
     }
 
     public async Task SendMessage(string user, string message)
-        => await Clients.All.SendAsync("ReceiveMessage", Context.ConnectionId, message);
+        { 
+            if(message == "restart")
+            {
+                Game.RestartGame();
+                await Clients.All.SendAsync("GetMap", Game.GenerateMap());
+            }
+            else
+                await Clients.All.SendAsync("ReceiveMessage", Context.ConnectionId, message);
+        }
 
     public void MovePlayer(int moveDirection)
     {      
-        var player = Game.Players.First(p => p.Id == Context.ConnectionId);
-        if(!player.Moved)
+        var player = Game.Players.FirstOrDefault(p => p.Id == Context.ConnectionId);
+        if(player is null)
+            Console.WriteLine("Nie znaleziono gracza....");
+
+        if(player != null && !player.Moved)
             player.MoveDirection = (MoveDirection)moveDirection;
     }
 
@@ -33,11 +44,17 @@ public class ChatHub : Hub
 
     public override Task OnConnectedAsync()
     {
-        Game.AddPlayer(new Player() { Id = Context.ConnectionId, Name = "mikze", PosX = 200, PosY = 200 });
+        if(Game.Players.Count() == 0)
+            Game.AddPlayer(new Player() { Id = Context.ConnectionId, Name = "mikze", PosX = 101, PosY = 100 });
+        else if(Game.Players.Count() == 1)
+            Game.AddPlayer(new Player() { Id = Context.ConnectionId, Name = "mikze", PosX = 99 + 14 * 50, PosY = 100 });
+        else if(Game.Players.Count() == 2)
+            Game.AddPlayer(new Player() { Id = Context.ConnectionId, Name = "mikze", PosX = 99 + 14 * 50, PosY = 99 + 13 * 50});
+        else if(Game.Players.Count() == 3)
+            Game.AddPlayer(new Player() { Id = Context.ConnectionId, Name = "mikze", PosX = 101, PosY = 99 + 13 * 50});
 
         Clients.All.SendAsync("Connected", Game.Players.Where(p => p.Live).ToArray(), Context.ConnectionId);
-        Game.GenerateMap();
-        Clients.Caller.SendAsync("GetMap", Game.Map);
+        Clients.Caller.SendAsync("GetMap", Game.GenerateMap());
         return base.OnConnectedAsync();
     }
 

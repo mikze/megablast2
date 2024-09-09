@@ -4,6 +4,7 @@ import { Player } from "./../Player/Player"
 import { Connection } from '../SignalR/Connection';
 import { MapGenerator } from './MapGenerator';
 import { HubConnectionState } from '@microsoft/signalr';
+import { Wall } from '../Player/Wall';
 
 
 export class GameLevel extends Scene {
@@ -20,14 +21,16 @@ export class GameLevel extends Scene {
   players: Player[];
   mapGenerator: MapGenerator;
   cameraSet: boolean
+  entities : IEntity[]
 
 
   constructor() {
     super('GameLevel');
     this.players = new Array<Player>();
+    this.entities = new Array<IEntity>();
   }
 
-  setMap(map: number[][]) {
+  setMap(map: Wall[]) {
     this.mapGenerator.GenerateMap(map);
   }
   sendMsg(user: string, message: string) {
@@ -62,6 +65,11 @@ export class GameLevel extends Scene {
     this.connection.connection.invoke("PlantBomb");
   }
 
+  removeEntity(id: string)
+  {
+    this.entities.find(e => e.id === id)?.sprite.destroy();
+  }
+
   recMsg(userId: string, message: string) {
     this.players.find(p => p.id === userId)?.Say(message);
   }
@@ -71,7 +79,7 @@ export class GameLevel extends Scene {
     player?.Move(x, y);
     if(this.playerId === id && player !== undefined && !this.cameraSet)
     {
-      this.camera.startFollow(player)
+      this.camera.startFollow(player.sprite)
       this.cameraSet = true;
     }
   }
@@ -92,7 +100,7 @@ bombPlanted(id :string)
   setPlayers(players: Array<Player>) {
     players.map(p => {
       if (!this.players.some(pl => pl.id === p.id))
-        setTimeout(() => this.players.push(new Player(p.id, p.name, p.x, p.y, this)), 50);
+        setTimeout(() => this.players.push(new Player(p.id, p.name, p.posX, p.posY, this)), 50);
     }
     )
   }
@@ -184,8 +192,9 @@ bombPlanted(id :string)
       this.moveUp();
     if(this.keyW?.isUp && this.keyS?.isUp && this.keyD?.isUp && this.keyA?.isUp)
       this.moveStop();
-    if(this.keySpace?.isDown)
+    if(this.keySpace !== undefined && Phaser.Input.Keyboard.JustDown(this.keySpace))
       this.plantBomb();
+      
   }
   }
 

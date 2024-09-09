@@ -6,8 +6,8 @@ import { Bomb } from "./Bomb"
 
     id : string
     name : string
-    x : number
-    y : number
+    posX : number
+    posY : number
     textName : Phaser.GameObjects.Text
     sprite : Phaser.GameObjects.Sprite
     scene: Scene
@@ -19,8 +19,8 @@ import { Bomb } from "./Bomb"
         stroke: '#000000', strokeThickness: 8,
         align: 'center'
       }).setOrigin(0.5).setDepth(100);
-      this.x = x;
-      this.y = y;
+      this.posX = x;
+      this.posY = y;
       this.sprite = scene.add.sprite(50, 300, "playerSprite").setScale(1);
       this.sprite.x = x;
       this.sprite.y = y;
@@ -31,11 +31,11 @@ import { Bomb } from "./Bomb"
     }
     PlantBomb()
     {
-      new Bomb(this.x, this.y, this.scene).PlantBomb()
+      new Bomb(this.posX, this.posY, this.scene).PlantBomb()
     }
     Say(message : string)
     {
-      let msg = this.scene.add.text(this.x, this.y + 20, this.name+": "+message, {
+      let msg = this.scene.add.text(this.posX, this.posY + 20, this.name+": "+message, {
         fontFamily: 'Arial Black', fontSize: 11, color: '#71e023',
         stroke: '#000000', strokeThickness: 7,
         align: 'center'
@@ -46,17 +46,17 @@ import { Bomb } from "./Bomb"
 
     Move(x: number, y: number)
     {
-      if (this.x > x)
+      if (this.posX > x)
         this.sprite.play({ key: "walkLeft", repeat: 1 }, true);
-      if (this.x < x)
+      if (this.posX < x)
         this.sprite.play({ key: "walkRight", repeat: 1 }, true);
-      if (this.y < y)
+      if (this.posY < y)
         this.sprite.play({ key: "walkDown", repeat: 1 }, true);
-      if (this.y > y)
+      if (this.posY > y)
         this.sprite.play({ key: "walkUp", repeat: 1 }, true);
 
-      this.x = x;
-      this.y = y;
+      this.posX = x;
+      this.posY = y;
       this.sprite.x = x;
       this.sprite.y = y; 
       this.textName.x = x;

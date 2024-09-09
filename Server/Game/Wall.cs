@@ -1,14 +1,24 @@
+
 public class Wall : IEntity
 {
+    public string Id { get; init; }
     public bool Destructible { get; set; } = false;
     public bool Collision { get; set; } = true;
     public int PosX { get; set; }
     public int PosY { get; set; }
-    public int Width { get; set; } = 50;
-    public int Height { get; set; } = 50;
+    public int Width { get; set; } = 32;
+    public int Height { get; set; } = 32;
+    public bool Destroyed { get; set; }
 
+    public Wall()
+    {
+        Id = Guid.NewGuid().ToString();
+    }
     public bool CheckCollistion(IEntity entity)
     {
+        if(entity.Destroyed)
+            return false;
+
         var h1 = this;
         var h2 = entity;
         return h1 != h2 && h1.PosX < h2.PosX + h2.Width &&

@@ -22,6 +22,11 @@ public class HubGameService : BackgroundService
             {
                 try
                 {
+                    foreach(var e in Game.GetEntities().Where(e => e.Destroyed))
+                        _hubContext.Clients.All.SendAsync("RemoveEntity", e.Id);
+
+                    Game.GetEntities().RemoveAll(e => e.Destroyed);
+
                     foreach(var player in Game.Players.Where(p => p.Live && p.MoveDirection != MoveDirection.none))
                     {
                         player.Moved = true;

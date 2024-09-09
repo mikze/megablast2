@@ -1,5 +1,6 @@
 import { HubConnection, HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 import { GameLevel } from "../scenes/Chat";
+import { Wall } from "../Player/Wall";
 
 type PlayerModel
 = 
@@ -15,7 +16,7 @@ export class Connection
     constructor(chat: GameLevel)
     {
         this.connection = new HubConnectionBuilder()
-            .withUrl("http://192.168.100.12:5166/Chat")
+            .withUrl("http://192.168.100.100:5166/Chat")
             .configureLogging(LogLevel.Information)
             .build();
 
@@ -58,12 +59,16 @@ export class Connection
             chat.playerDisconnected(id);
         })
 
-        this.connection.on("GetMap", (map : number[][]) => {
+        this.connection.on("GetMap", (map : Wall[]) => {
             chat.setMap(map);
         })
 
         this.connection.on("BombPlanted", (id : string) => {
             chat.bombPlanted(id)
+        });
+
+        this.connection.on("RemoveEntity", (id : string) => {
+            chat.removeEntity(id)
         });
 
         // Start the connection.
