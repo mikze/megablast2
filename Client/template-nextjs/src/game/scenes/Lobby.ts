@@ -13,14 +13,20 @@ export class Lobby extends Scene {
     }
 
     preload() {
+        this.CreateConn();
+    }
+    async CreateConn() {
         if (Connection.connection === undefined || Connection.connection.state !== HubConnectionState.Connected) {
-            Connection.CreateConnection();
+            await Connection.CreateConnection();
 
-            Connection.connection.on("Start", (id: string) => {
+            await Connection.connection.on("Start", (id: string) => {
                 this.scene.start('GameLevel');
             })
+
+            await Connection.connection.invoke("RestartGame");
         }
-    }
+    }  
+     
     create() {
         this.camera = this.cameras.main;
         this.camera.setBackgroundColor(0x00ff00);
@@ -33,10 +39,6 @@ export class Lobby extends Scene {
             stroke: '#000000', strokeThickness: 8,
             align: 'center'
         }).setOrigin(0.5).setDepth(100);
-
-        setTimeout(() => {
-        Connection.connection.invoke("RestartGame");
-        }, 50);
 
         EventBus.emit('current-scene-ready', this);
     }
