@@ -23,10 +23,10 @@ export class Lobby extends Scene {
                 this.scene.start('GameLevel');
             })
 
-            await Connection.connection.invoke("RestartGame");
+            setTimeout(() => Connection.connection.invoke("RestartGame"), 500);
         }
     }  
-     
+
     create() {
         this.camera = this.cameras.main;
         this.camera.setBackgroundColor(0x00ff00);
