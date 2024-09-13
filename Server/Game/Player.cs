@@ -1,6 +1,7 @@
 
 public class Player : IEntity
 {
+    public bool Dead { get; set; }
     public int Speed { get; set; } = 1;
     public string? Name { get; set; }
     public int PosX { get; set; }
@@ -13,46 +14,59 @@ public class Player : IEntity
     public MoveDirection MoveDirection { get; set; }
     public bool Live { get; internal set; } = true;
     public bool Destroyed { get; set; }
+    public bool Destructible { get; set; } = true;
 
     public bool CheckCollistion(IEntity entity)
     {
-        return false;
+        if(entity.Destroyed)
+            return false;
+
+        var h1 = this;
+        var h2 = entity;
+        return h1 != h2 && h1.PosX < h2.PosX + h2.Width &&
+         h1.PosX + h1.Width > h2.PosX &&
+         h1.PosY < h2.PosY + h2.Height &&
+         h1.Height + h1.PosY > h2.PosY;
     }
 
     public void MovePlayer(MoveDirection moveDirection)
     {
-        var oldPosX = PosX;
-        var oldPosY = PosY;
-
-        switch (moveDirection)
+        if (!Dead && Game.Live)
         {
-            case MoveDirection.Right:
-                PosX += Speed;
-                break;
-            case MoveDirection.Left:
-                PosX -= Speed;
-                break;
-            case MoveDirection.Up:
-                PosY -= Speed;
-                break;
-            case MoveDirection.Down:
-                PosY += Speed;
-                break;
-        }
+            var oldPosX = PosX;
+            var oldPosY = PosY;
 
-        foreach(var entity in Game.GetEntities().Where(e => e != this && e.Collision))
-        {
-            if(entity.CheckCollistion(this))
+            switch (moveDirection)
             {
-                PosX = oldPosX;
-                PosY = oldPosY;
-                break;
+                case MoveDirection.Right:
+                    PosX += Speed;
+                    break;
+                case MoveDirection.Left:
+                    PosX -= Speed;
+                    break;
+                case MoveDirection.Up:
+                    PosY -= Speed;
+                    break;
+                case MoveDirection.Down:
+                    PosY += Speed;
+                    break;
+            }
+
+            foreach (var entity in Game.GetEntities().Where(e => e != this && e.Collision))
+            {
+                if (entity.CheckCollistion(this))
+                {
+                    PosX = oldPosX;
+                    PosY = oldPosY;
+                    break;
+                }
             }
         }
     }
 
     internal void PlantBomb()
     {
-        Game.PlantBomb(PosX+16, PosY+16);
+        if(!Dead)
+            Game.PlantBomb(PosX+16, PosY+16);
     }
 }

@@ -1,77 +1,108 @@
 import { HubConnection, HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 import { GameLevel } from "../scenes/Chat";
 import { Wall } from "../Player/Wall";
+import { Fire } from "../Player/Fire";
+import { PlayerManager } from "../scenes/PlayerManager";
+import { PlayerModel } from "../Player/PlayerModel";
+import { MapGenerator } from "../scenes/MapGenerator";
 
-type PlayerModel
-= 
-{
-    posX :number, 
-    posY: number, 
-    id: string
-}
-export class Connection
-{
-    connection: HubConnection;
 
-    constructor(chat: GameLevel)
-    {
-        this.connection = new HubConnectionBuilder()
+export class Connection {
+    static connection: HubConnection;
+    static gameLevel: GameLevel
+
+    static CreateConnection() {
+        console.log("Create connection")
+        Connection.connection = new HubConnectionBuilder()
             .withUrl("http://192.168.100.100:5166/Chat")
             .configureLogging(LogLevel.Information)
             .build();
 
-        async function start(connection : HubConnection ) {
+        async function start(connection: HubConnection) {
             try {
                 await connection.start();
                 console.log("SignalR Connected.");
-                chat.setPlayerId(connection.connectionId);
+                GameLevel.playerId = connection.connectionId;
+
+                Connection.connection.onclose(async () => {
+                    await start(Connection.connection);
+                });
+        
+                Connection.connection.on("ReceiveMessage", (user, message) => {
+                    if (Connection.gameLevel !== undefined)
+                        Connection.gameLevel.recMsg(user, message);
+                });
+        
+                Connection.connection.on("MovePlayer", (obj: [PlayerModel]) => {
+                    if (Connection.gameLevel !== undefined) {
+                        obj.map(p => {
+                            if(p.posX === undefined)
+                                console.log(p.posX)
+                            Connection.gameLevel.recMovePlayer(p.posX, p.posY, p.id);
+                        }
+                        );
+                    }
+                });
+        
+                Connection.connection.on("Connected", (players : PlayerModel[]) => {
+                    PlayerManager.UpdatePlayers(players);
+                });
+        
+                Connection.connection.on("NameChanged", (id: string, newName: string) => {
+                    if (Connection.gameLevel !== undefined)
+                        Connection.gameLevel.nameChanged(newName, id);
+                });
+        
+                Connection.connection.on("Disconnected", (players : PlayerModel[]) => {
+                    PlayerManager.UpdatePlayers(players);
+                })
+        
+                Connection.connection.on("GetMap", (map: Wall[]) => {
+                    MapGenerator.SetMap(map);
+                    })
+        
+                Connection.connection.on("BombPlanted", (id: string) => {
+                    if (Connection.gameLevel !== undefined)
+                        Connection.gameLevel.bombPlanted(id)
+                });
+        
+                Connection.connection.on("RemoveEntity", (id: string) => {
+                    if (Connection.gameLevel !== undefined)
+                        Connection.gameLevel.removeEntity(id)
+                });
+        
+                Connection.connection.on("Fires", (fires: Fire[]) => {
+                    if (Connection.gameLevel !== undefined)
+                        Connection.gameLevel.addFire(fires)
+                });
+        
+                Connection.connection.on("KillPlayer", (id: string) => {
+                    if (Connection.gameLevel !== undefined) {
+                        console.log("KillPlayer", id)
+                        Connection.gameLevel.killPlayer(id);
+                    }
+                });
+        
+                Connection.connection.on("ResurrectPlayer", (id: string) => {
+                    if (Connection.gameLevel !== undefined)
+                    {
+                        console.log("ResurrectPlayerlayer", id)
+                        Connection.gameLevel.resurrectPlayer(id);
+                    }
+                });
+        
+                Connection.connection.on("BackToLobby", (id: string) => {
+                    if (Connection.gameLevel !== undefined)
+                        Connection.gameLevel.scene.start('Lobby');
+                });
             } catch (err) {
                 console.log(err);
                 setTimeout(start, 5000);
             }
         };
 
-        this.connection.onclose(async () => {
-            await start(this.connection);
-        });
-
-        this.connection.on("ReceiveMessage", (user, message) => {
-            chat.recMsg(user,message);
-        });
-
-        this.connection.on("MovePlayer", (obj : [PlayerModel]) => {
-            
-            obj.map( p => 
-                { 
-                    chat.recMovePlayer(p.posX, p.posY, p.id);}
-                );
-        });
-
-        this.connection.on("Connected", (players, id) => {
-            chat.setPlayers(players);
-        });
-
-        this.connection.on("NameChanged", (id : string, newName: string) => {
-            chat.nameChanged(newName, id);
-        });
-
-        this.connection.on("Disconnected", (id : string) => {
-            chat.playerDisconnected(id);
-        })
-
-        this.connection.on("GetMap", (map : Wall[]) => {
-            chat.setMap(map);
-        })
-
-        this.connection.on("BombPlanted", (id : string) => {
-            chat.bombPlanted(id)
-        });
-
-        this.connection.on("RemoveEntity", (id : string) => {
-            chat.removeEntity(id)
-        });
-
         // Start the connection.
-        start(this.connection);
+        start(Connection.connection);     
     }
+
 }

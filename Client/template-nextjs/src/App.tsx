@@ -1,11 +1,7 @@
 import { useRef, useState } from 'react';
 import { IRefPhaserGame, PhaserGame } from './game/PhaserGame';
-import { MainMenu } from './game/scenes/MainMenu';
 import { GameLevel } from './game/scenes/Chat';
 import { TextField } from '@mui/material';
-import { EventBus } from './game/EventBus';
-import { use } from 'matter';
-import { Game } from './game/scenes/Game';
 import { Preloader } from './game/scenes/Preloader';
 
 function App() {
@@ -27,6 +23,15 @@ function App() {
         }
     }
 
+
+    const backToLobby = () => {
+
+        if (phaserRef.current) {
+            let scene = phaserRef.current.scene as GameLevel;
+            scene.backToLobby();
+        }
+    }
+
     const sendMsg = () => {
 
         if (phaserRef.current) {
@@ -43,7 +48,7 @@ function App() {
         if (phaserRef.current) {
             const scene = phaserRef.current.scene as GameLevel;
 
-            if (scene && scene.scene.key === 'GameLevel') {
+            if (scene && scene.scene.key === 'GameLevel' || scene.scene.key === 'Lobby') {
                 scene.changeName(name);
             }
         }
@@ -68,7 +73,10 @@ function App() {
             </div>
             <div>
                     <div>
-                        <button className="button" onClick={changeScene}>Change Scene</button>
+                        <button className="button" onClick={changeScene}>Start</button>
+                    </div>
+                    <div>
+                        <button className="button" onClick={backToLobby}>Back to lobby</button>
                     </div>
                     <div>
                         <input value={name} onChange={(e) => setName(e.target.value)} />

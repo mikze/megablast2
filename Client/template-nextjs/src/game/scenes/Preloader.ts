@@ -69,6 +69,13 @@ export class Preloader extends Scene
             }
           );
 
+          this.load.spritesheet("dead", "dead.png",
+            {
+              frameHeight: 63,
+              frameWidth: 63
+            }
+          );
+
           this.loadTiledSheet("otsp_tiles_01");
           this.loadTiledSheet("otsp_town_01");
     }
@@ -94,7 +101,7 @@ export class Preloader extends Scene
         //  For example, you can define global animations here, so we can use them in other scenes.
 
         //  Move to the MainMenu. You could also swap this for a Scene Transition, such as a camera fade.
-        this.scene.start('Game');
+        this.scene.start('Lobby');
     }
 
     changeScene ()

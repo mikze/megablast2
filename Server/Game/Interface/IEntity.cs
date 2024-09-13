@@ -8,4 +8,5 @@ public interface IEntity
     public int Height { get; set; }
     public bool CheckCollistion(IEntity entity);
     public bool Destroyed { get; set; }
+    public bool Destructible { get; set; }
 }

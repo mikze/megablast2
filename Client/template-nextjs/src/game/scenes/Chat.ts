@@ -5,9 +5,12 @@ import { Connection } from '../SignalR/Connection';
 import { MapGenerator } from './MapGenerator';
 import { HubConnectionState } from '@microsoft/signalr';
 import { Wall } from '../Player/Wall';
+import { Fire } from '../Player/Fire';
+import { PlayerManager } from './PlayerManager';
 
 
 export class GameLevel extends Scene {
+
 
   camera: Phaser.Cameras.Scene2D.Camera;
   background: Phaser.GameObjects.Image;
@@ -17,9 +20,8 @@ export class GameLevel extends Scene {
   keyD: Phaser.Input.Keyboard.Key | undefined;
   keyW: Phaser.Input.Keyboard.Key | undefined;
   keySpace: Phaser.Input.Keyboard.Key | undefined;
-  playerId: string | null
+  static playerId: string | null
   players: Player[];
-  mapGenerator: MapGenerator;
   cameraSet: boolean
   entities : IEntity[]
 
@@ -27,47 +29,69 @@ export class GameLevel extends Scene {
   constructor() {
     super('GameLevel');
     this.players = new Array<Player>();
+
     this.entities = new Array<IEntity>();
   }
 
-  setMap(map: Wall[]) {
-    this.mapGenerator.GenerateMap(map);
+  setMap() {
+    MapGenerator.GenerateMap(this);
   }
   sendMsg(user: string, message: string) {
-    this.connection.connection.invoke("SendMessage", user, message);
+    Connection.connection.invoke("SendMessage", user, message);
   }
 
   changeName(newName: string) {
-    this.connection.connection.invoke("ChangeName", newName);
+    Connection.connection.invoke("ChangeName", newName);
   }
 
   moveRight() {
-    this.connection.connection.invoke("MovePlayer", 0);
+    Connection.connection.invoke("MovePlayer", 0);
   }
 
   moveLeft() {
-    this.connection.connection.invoke("MovePlayer", 1);
+    Connection.connection.invoke("MovePlayer", 1);
   }
 
   moveUp() {
-    this.connection.connection.invoke("MovePlayer", 2);
+    Connection.connection.invoke("MovePlayer", 2);
   }
 
   moveDown() {
-    this.connection.connection.invoke("MovePlayer", 3);
+    Connection.connection.invoke("MovePlayer", 3);
   }
 
   moveStop() {
-    this.connection.connection.invoke("MovePlayer", 4);
+    Connection.connection.invoke("MovePlayer", 4);
   }
 
   plantBomb() {
-    this.connection.connection.invoke("PlantBomb");
+    Connection.connection.invoke("PlantBomb");
   }
+
+  backToLobby() {
+    Connection.connection.invoke("BackToLobby");
+}
 
   removeEntity(id: string)
   {
     this.entities.find(e => e.id === id)?.sprite.destroy();
+  }
+
+  killPlayer(id: string) {
+    this.players.find(p => p.id === id)?.Dead();
+  }
+
+  resurrectPlayer(id: string) {
+    this.players.find(p => p.id === id)?.Alive();
+  }
+
+  addFire(fires: Fire[]) {
+    console.log(fires);
+    fires.map(f => {
+      f.image = this.add.image(f.posX, f.posY, "fire").setScale(0.8);
+    })
+
+    setTimeout(() => fires.map(f => f.image.destroy()) , 2000);
   }
 
   recMsg(userId: string, message: string) {
@@ -77,19 +101,24 @@ export class GameLevel extends Scene {
   recMovePlayer(x: number, y: number, id: string) {
     let player = this.players.find(p => p.id === id);
     player?.Move(x, y);
-    if(this.playerId === id && player !== undefined && !this.cameraSet)
+
+    if(GameLevel.playerId === id && player !== undefined && !this.cameraSet)
     {
-      this.camera.startFollow(player.sprite)
+      this.camera.startFollow(player)
       this.cameraSet = true;
     }
   }
 
-  nameChanged(newName : string, id : string){
-    this.players.find(p => p.id === id)?.textName.setText(newName);
+  nameChanged(newName: string, id: string) {
+    let player = this.players.find(p => p.id === id);
+    if (player !== undefined) {
+      player.textName.setText(newName);
+      player.name = newName;
+    }
   }
 
   setPlayerId(id: string | null) {
-    this.playerId = id;
+    GameLevel.playerId = id;
 }
 
 bombPlanted(id :string)
@@ -97,10 +126,13 @@ bombPlanted(id :string)
   this.players.find(p => p.id === id)?.PlantBomb();
 }
 
-  setPlayers(players: Array<Player>) {
-    players.map(p => {
-      if (!this.players.some(pl => pl.id === p.id))
+  setPlayers() {
+    this.players = new Array<Player>();
+    console.log(PlayerManager.players)
+    PlayerManager.players.map(p => {     
+        console.log("push players")
         setTimeout(() => this.players.push(new Player(p.id, p.name, p.posX, p.posY, this)), 50);
+      
     }
     )
   }
@@ -111,17 +143,19 @@ bombPlanted(id :string)
     this.players = this.players.filter(p => p.id !== id);
   }
 
+  
+
   preload() {
-    this.asyncLoad();
+    console.log("Preload")
+    Connection.gameLevel = this;
+    this.cameraSet = false;
+    this.setPlayers();
+    this.setMap();
   }
 
-  async asyncLoad()
-  {
-    this.connection = await new Connection(this);
-    this.mapGenerator = await new MapGenerator(this);
-  }
 
   create() {
+    console.log("Create")   
     this.camera = this.cameras.main;
     this.camera.setBackgroundColor("rgb(55, 87, 248)");
 
@@ -131,7 +165,6 @@ bombPlanted(id :string)
     this.keyW = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
     this.keySpace = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
     
-
     this.anims.create({
       key: "walkRight",
       frames: this.anims.generateFrameNumbers("playerSprite", {
@@ -172,15 +205,14 @@ bombPlanted(id :string)
       frameRate: 20,
     });
 
-    this.background = this.add.image(512, 384, 'background');
-    this.background.setAlpha(0.5);
+    //this.background = this.add.image(512, 384, 'background');
+    //this.background.setAlpha(0.5);
 
     EventBus.emit('current-scene-ready', this);
-
   }
 
   update(time: number, delta: number): void {
-    if(this.connection?.connection.state === HubConnectionState.Connected)
+    if(Connection.connection.state === HubConnectionState.Connected)
     {
     if (this.keyA?.isDown)
       this.moveLeft();
@@ -199,6 +231,6 @@ bombPlanted(id :string)
   }
 
   changeScene() {
-    this.scene.start('GameOver');
+    Connection.connection.invoke("SendMessage", "", "restart");
   }
 }

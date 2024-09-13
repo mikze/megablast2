@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.AspNetCore.SignalR;
 
 public enum MoveDirection
 {
@@ -12,9 +13,11 @@ public enum MoveDirection
 }
 public static class Game
 {
+    public static bool Live { get; set; } = false;
     public static int[][]? Map;
     public static List<IEntity> Entities = new List<IEntity>();
-    static object? LockEntities;
+    public static HubGameService hubGameService;
+    public static object LockEntities;
     public static List<IEntity> GetEntities()
     {
         if(LockEntities is null)
@@ -35,7 +38,14 @@ public static class Game
          Entities.Add(entity);
         }
     }
-    public static ConcurrentBag<Player> Players { get; set; } = new ConcurrentBag<Player>();
+    public static Player[] Players { get; set; } =
+    {
+        new Player(){ Id = string.Empty, Live = false},
+        new Player(){ Id = string.Empty, Live = false},
+        new Player(){ Id = string.Empty, Live = false},
+        new Player(){ Id = string.Empty, Live = false}
+    };
+
     public static List<IEvent> Events {get; set; } = new List<IEvent>();
     static bool generated = false;
     public static Wall[] GenerateMap()
@@ -86,17 +96,41 @@ public static class Game
         return GetEntities().Where(e => e is Wall).Cast<Wall>().ToArray();
     }
 
-    public static void AddPlayer(Player newPlayer) 
-    { 
-        Players.Add(newPlayer);
-        GetEntities().Add(newPlayer);
+    public static void AddPlayer(Player newPlayer)
+    {
+        if (GetFreePlayerSlotNumber(out int idPlayer))
+        {
+            Players[idPlayer] = newPlayer;
+            GetEntities().Add(newPlayer);
+        }
     }
-    
+
+    public static bool GetFreePlayerSlotNumber(out int number)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            if(Players[i].Live == false)
+            {
+                number = i;
+                return true;
+            }
+        }
+        number = -1;
+        return false;
+    }
+
+
     public static void RemovePlayer(string Id)
     {
         var player = Players.FirstOrDefault(p => p.Id == Id);
         if (player != null)
+        {
             player.Live = false;
+            lock(LockEntities)
+            {
+                Entities.Remove(player);
+            }
+        }
     }
 
     public static void MovePlayer(string id, MoveDirection moveDirection)
@@ -119,36 +153,43 @@ public static class Game
     public static void PlantBomb(int x, int y) 
         => Bomb.Plant(x, y).Start();
 
-    public static void RestartGame()
+    public static async Task RestartGame()
     {
         GetEntities().RemoveAll(e => e is Wall);
         generated = false;
-        GenerateMap();
 
-        var players = Players.ToArray();
+        var newMap = GenerateMap();
+        var players = Players.Where(p => p.Live).ToArray();
+
         for (int i = 0; i < players.Length; i++)
         {
            if(i == 0)
            {
                 players[0].PosX = 101; 
                 players[0].PosY = 100;
+                players[0].Dead = false;
+                
            }
             else if(i == 1)
             {
                 players[1].PosX = 99 + 14 * 50; 
                 players[1].PosY = 100;
+                players[1].Dead = false;
             }
             else if(i == 2)
             {
                 players[2].PosX = 99 + 14 * 50; 
                 players[2].PosY = 99 + 13 * 50;
+                players[2].Dead = false;
             }
             else if(i == 3)
             {
                 players[3].PosX = 101; 
                 players[3].PosY = 99 + 13 * 50;
+                players[3].Dead = false;
             }
         }
-        
+        await hubGameService.hubContext.Clients.All.SendAsync("Connected", players);
+        await hubGameService.hubContext.Clients.All.SendAsync("GetMap", newMap);
     }
 }

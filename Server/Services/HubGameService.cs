@@ -3,10 +3,11 @@ using Microsoft.AspNetCore.SignalR;
 
 public class HubGameService : BackgroundService
 {
-    IHubContext<ChatHub> _hubContext;
+    public IHubContext<ChatHub> hubContext;
     public HubGameService(IHubContext<ChatHub> hubContext)
     {
-        _hubContext = hubContext;
+        this.hubContext = hubContext;
+        Game.hubGameService = this;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -23,18 +24,22 @@ public class HubGameService : BackgroundService
                 try
                 {
                     foreach(var e in Game.GetEntities().Where(e => e.Destroyed))
-                        _hubContext.Clients.All.SendAsync("RemoveEntity", e.Id);
+                        hubContext.Clients.All.SendAsync("RemoveEntity", e.Id);
 
-                    Game.GetEntities().RemoveAll(e => e.Destroyed);
+                    lock(Game.LockEntities)
+                    {
+                        Game.Entities.RemoveAll(e => e.Destroyed);
+                    }
 
-                    foreach(var player in Game.Players.Where(p => p.Live && p.MoveDirection != MoveDirection.none))
+                    foreach(var player in Game.Players.Where(p => p.Live && !p.Dead && p.MoveDirection != MoveDirection.none))
                     {
                         player.Moved = true;
                         player.MovePlayer(player.MoveDirection);
                         player.Moved = false;
                     }
                     Thread.Sleep(10);
-                    _hubContext.Clients.All.SendAsync("MovePlayer", Game.Players.Select(p => new PlayerModel(p)).ToArray());
+                    if(Game.Live)
+                        hubContext.Clients.All.SendAsync("MovePlayer", Game.Players.Select(p => new PlayerModel(p)).ToArray());
                 }
                 catch
                 {

@@ -2,36 +2,38 @@ import { Wall } from "../Player/Wall";
 import { GameLevel } from "./Chat";
 
 export class MapGenerator {
-    map: Wall[]
-    mapDic: { [id: integer] : {sheetName: string, x : integer}}
-    gameLevel: GameLevel
+    static map: Wall[]
+    static mapDic: { [id: integer] : {sheetName: string, x : integer}}
 
-    constructor(gameLevel: GameLevel) {
-        this.mapDic = {};
-        this.mapDic[0] = { sheetName: "otsp_tiles_01", x: 144};
-        this.mapDic[1] = { sheetName: "solidWall", x: -1};
-        this.mapDic[2] = { sheetName: "otsp_town_01", x: 11};
-        this.mapDic[3] = { sheetName: 'otsp_town_01', x: 7};
-        this.mapDic[4] = { sheetName: "destructiveWall", x: -1};
-        this.gameLevel = gameLevel;
+    static SetMap(map: Wall[])
+    {
+        MapGenerator.map = map;
     }
 
-    GenerateMap(map: Wall[]) {
-        this.gameLevel.entities.map(
+    static GenerateMap(gameLevel :GameLevel) {
+
+        MapGenerator.mapDic = {};
+        MapGenerator.mapDic[0] = { sheetName: "otsp_tiles_01", x: 144};
+        MapGenerator.mapDic[1] = { sheetName: "solidWall", x: -1};
+        MapGenerator.mapDic[2] = { sheetName: "otsp_town_01", x: 11};
+        MapGenerator.mapDic[3] = { sheetName: 'otsp_town_01', x: 7};
+        MapGenerator.mapDic[4] = { sheetName: "destructiveWall", x: -1};
+
+        gameLevel.entities.map(
             e => {
                 e.sprite.destroy();
             }
         );
 
-        this.gameLevel.entities = new Array<IEntity>();
+        gameLevel.entities = new Array<IEntity>();
         
-        map.map(wall => {
+        MapGenerator.map.map(wall => {
                 if(!wall.destructible)
-                    wall.sprite = this.gameLevel.add.image(wall.posX, wall.posY, this.mapDic[1].sheetName, this.mapDic[1].x).setScale(1);
+                    wall.sprite = gameLevel.add.image(wall.posX, wall.posY, MapGenerator.mapDic[1].sheetName, MapGenerator.mapDic[1].x).setScale(1);
                 else
-                    wall.sprite = this.gameLevel.add.image(wall.posX, wall.posY, this.mapDic[4].sheetName).setScale(1);
+                    wall.sprite = gameLevel.add.image(wall.posX, wall.posY, MapGenerator.mapDic[4].sheetName).setScale(1);
 
-                    this.gameLevel.entities.push(wall);
+                    gameLevel.entities.push(wall);
             })
     }
 }
