@@ -96,12 +96,33 @@ public static class Game
         return GetEntities().Where(e => e is Wall).Cast<Wall>().ToArray();
     }
 
-    public static void AddPlayer(Player newPlayer)
+    public static void AddPlayer(string id)
     {
         if (GetFreePlayerSlotNumber(out int idPlayer))
         {
-            Players[idPlayer] = newPlayer;
-            GetEntities().Add(newPlayer);
+            Player? newPlayer = null;
+
+            switch(idPlayer)
+            {
+                case 0:
+                    newPlayer = new Player() { Id = id, Name = "mikze", PosX = 101, PosY = 100 };
+                break;
+                case 1:
+                    newPlayer = new Player() { Id = id, Name = "mikze", PosX = 99 + 14 * 50, PosY = 100 };
+                break;
+                case 2:
+                    newPlayer = new Player() { Id = id, Name = "mikze", PosX = 99 + 14 * 50, PosY = 99 + 13 * 50 };
+                break;
+                case 3:
+                    newPlayer = new Player() { Id = id, Name = "mikze", PosX = 101, PosY = 99 + 13 * 50 };
+                break;
+            }
+
+            if (newPlayer != null)
+            {
+                Players[idPlayer] = newPlayer;
+                GetEntities().Add(newPlayer);
+            }
         }
     }
 
@@ -148,6 +169,13 @@ public static class Game
         var player = Players.FirstOrDefault(p => p.Id == id);
         if (player != null)
             player.Name = newName;
+    }
+
+     public static void ChangeSkin(string id, string newSkinName)
+    {
+        var player = Players.FirstOrDefault(p => p.Id == id);
+        if (player != null)
+            player.Skin = newSkinName;
     }
     
     public static void PlantBomb(int x, int y) 

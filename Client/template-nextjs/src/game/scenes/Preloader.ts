@@ -40,6 +40,13 @@ export class Preloader extends Scene
               frameWidth: 63
             }
           );
+
+          this.load.spritesheet("playerSprite2", "player2.png",
+            {
+              frameHeight: 63,
+              frameWidth: 63
+            }
+          );
       
           this.load.spritesheet("solidWall", "SolidWall.png",
             {
@@ -101,7 +108,93 @@ export class Preloader extends Scene
         //  For example, you can define global animations here, so we can use them in other scenes.
 
         //  Move to the MainMenu. You could also swap this for a Scene Transition, such as a camera fade.
+        this.loadAnims();
         this.scene.start('Lobby');
+    }
+
+    loadAnims()
+    {
+        this.anims.create({
+            key: "playerSprite_walkRight",
+            frames: this.anims.generateFrameNumbers("playerSprite", {
+              frames: [8, 9, 10, 11],
+            }),
+            frameRate: 10,
+            repeat: -1,
+          });
+      
+          this.anims.create({
+            key: "playerSprite_walkLeft",
+            frames: this.anims.generateFrameNumbers("playerSprite", {
+              frames: [4, 5, 6, 7],
+            }),
+            frameRate: 10,
+            repeat: -1,
+          });
+      
+          this.anims.create({
+            key: "playerSprite_walkUp",
+            frames: this.anims.generateFrameNumbers("playerSprite", {
+              frames: [12, 13, 14, 15],
+            }),
+            frameRate: 20,
+          });
+      
+          this.anims.create({
+            key: "playerSprite_walkDown",
+            frames: this.anims.generateFrameNumbers("playerSprite", {
+              frames: [0, 1, 2, 3],
+            }),
+            frameRate: 20,
+          });
+      
+          this.anims.create({
+            key: "playerSprite_turn",
+            frames: [{ key: "playerSprite", frame: 1 }],
+            frameRate: 20,
+          });
+
+          ///
+
+          this.anims.create({
+            key: "playerSprite2_walkRight",
+            frames: this.anims.generateFrameNumbers("playerSprite2", {
+              frames: [8, 9, 10, 11],
+            }),
+            frameRate: 10,
+            repeat: -1,
+          });
+      
+          this.anims.create({
+            key: "playerSprite2_walkLeft",
+            frames: this.anims.generateFrameNumbers("playerSprite2", {
+              frames: [4, 5, 6, 7],
+            }),
+            frameRate: 10,
+            repeat: -1,
+          });
+      
+          this.anims.create({
+            key: "playerSprite2_walkUp",
+            frames: this.anims.generateFrameNumbers("playerSprite2", {
+              frames: [12, 13, 14, 15],
+            }),
+            frameRate: 20,
+          });
+      
+          this.anims.create({
+            key: "playerSprite2_walkDown",
+            frames: this.anims.generateFrameNumbers("playerSprite2", {
+              frames: [0, 1, 2, 3],
+            }),
+            frameRate: 20,
+          });
+      
+          this.anims.create({
+            key: "playerSprite2_turn",
+            frames: [{ key: "playerSprite2", frame: 1 }],
+            frameRate: 20,
+          });
     }
 
     changeScene ()

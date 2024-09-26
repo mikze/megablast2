@@ -4,6 +4,7 @@ import { Bomb } from "./Bomb"
   
   export class Player {
 
+
     id : string
     name : string
     posX : number
@@ -14,8 +15,8 @@ import { Bomb } from "./Bomb"
     sprite : Phaser.GameObjects.Sprite
     scene: Scene
     dead : boolean
-  
-    constructor(id : string, name : string, x : number, y : number, scene: Scene) {
+    skinName : string
+    constructor(id : string, name : string, x : number, y : number, scene: Scene, skinName: string) {
       this.id = id;
       this.textName = scene.add.text(x, y + 20, name, {
         fontFamily: 'Arial Black', fontSize: 18, color: '#ffffff',
@@ -24,14 +25,22 @@ import { Bomb } from "./Bomb"
       }).setOrigin(0.5).setDepth(100);
       this.posX = x;
       this.posY = y;
-      this.sprite = scene.add.sprite(50, 300, "playerSprite").setScale(1);
+      this.sprite = scene.add.sprite(50, 300, skinName).setScale(1);
       this.sprite.x = x;
       this.sprite.y = y;
       this.textName.x = x;
       this.textName.y = y - 20;
       this.scene = scene;
       this.name = name;
+      this.skinName = skinName
     }
+
+    Destroy()
+    {
+      this.sprite.destroy();
+      this.textName.destroy();
+    }
+
     PlantBomb()
     {
       new Bomb(this.posX, this.posY, this.scene).PlantBomb()
@@ -50,13 +59,13 @@ import { Bomb } from "./Bomb"
     Move(x: number, y: number)
     {
       if (this.posX > x)
-        this.sprite.play({ key: "walkLeft", repeat: 1 }, true);
+        this.sprite.play({ key: this.skinName + "_walkLeft", repeat: 1 }, true);
       if (this.posX < x)
-        this.sprite.play({ key: "walkRight", repeat: 1 }, true);
+        this.sprite.play({ key: this.skinName + "_walkRight", repeat: 1 }, true);
       if (this.posY < y)
-        this.sprite.play({ key: "walkDown", repeat: 1 }, true);
+        this.sprite.play({ key: this.skinName + "_walkDown", repeat: 1 }, true);
       if (this.posY > y)
-        this.sprite.play({ key: "walkUp", repeat: 1 }, true);
+        this.sprite.play({ key: this.skinName + "_walkUp", repeat: 1 }, true);
 
       this.posX = x;
       this.posY = y;
@@ -79,7 +88,7 @@ import { Bomb } from "./Bomb"
     {
       this.dead = false;
       this.sprite.destroy();
-      this.sprite = this.scene.add.sprite(50, 300, "playerSprite").setScale(1);
+      this.sprite = this.scene.add.sprite(50, 300, this.skinName).setScale(1);
       this.textName.destroy();
       this.textName = this.scene.add.text(this.x, this.y + 20, this.name, {
         fontFamily: 'Arial Black', fontSize: 18, color: '#ffffff',

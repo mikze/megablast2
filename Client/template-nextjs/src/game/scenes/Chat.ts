@@ -4,7 +4,6 @@ import { Player } from "./../Player/Player"
 import { Connection } from '../SignalR/Connection';
 import { MapGenerator } from './MapGenerator';
 import { HubConnectionState } from '@microsoft/signalr';
-import { Wall } from '../Player/Wall';
 import { Fire } from '../Player/Fire';
 import { PlayerManager } from './PlayerManager';
 
@@ -127,15 +126,23 @@ bombPlanted(id :string)
 }
 
   setPlayers() {
-    this.players = new Array<Player>();
     console.log(PlayerManager.players)
-    PlayerManager.players.map(p => {     
-        console.log("push players")
-        setTimeout(() => this.players.push(new Player(p.id, p.name, p.posX, p.posY, this)), 50);
+
+    new Promise((r,c) => r(this.players.map(p=>{
+
+      p.sprite.destroy();
+
+    })))
+    .then( () => {
+    this.players = new Array<Player>();
+
+    PlayerManager.players.map(p => 
+      { 
+      setTimeout(() => this.players.push(new Player(p.id, p.name, p.posX, p.posY, this, p.skin)), 50);})
+      })
       
     }
-    )
-  }
+
 
   playerDisconnected(id: string) {
     this.players.find(p => p.id === id)?.textName.destroy();
@@ -165,45 +172,7 @@ bombPlanted(id :string)
     this.keyW = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
     this.keySpace = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
     
-    this.anims.create({
-      key: "walkRight",
-      frames: this.anims.generateFrameNumbers("playerSprite", {
-        frames: [8, 9, 10, 11],
-      }),
-      frameRate: 10,
-      repeat: -1,
-    });
-
-    this.anims.create({
-      key: "walkLeft",
-      frames: this.anims.generateFrameNumbers("playerSprite", {
-        frames: [4, 5, 6, 7],
-      }),
-      frameRate: 10,
-      repeat: -1,
-    });
-
-    this.anims.create({
-      key: "walkUp",
-      frames: this.anims.generateFrameNumbers("playerSprite", {
-        frames: [12, 13, 14, 15],
-      }),
-      frameRate: 20,
-    });
-
-    this.anims.create({
-      key: "walkDown",
-      frames: this.anims.generateFrameNumbers("playerSprite", {
-        frames: [0, 1, 2, 3],
-      }),
-      frameRate: 20,
-    });
-
-    this.anims.create({
-      key: "turn",
-      frames: [{ key: "playerSprite", frame: 1 }],
-      frameRate: 20,
-    });
+    
 
     //this.background = this.add.image(512, 384, 'background');
     //this.background.setAlpha(0.5);
@@ -226,11 +195,10 @@ bombPlanted(id :string)
       this.moveStop();
     if(this.keySpace !== undefined && Phaser.Input.Keyboard.JustDown(this.keySpace))
       this.plantBomb();
-      
   }
   }
 
   changeScene() {
-    Connection.connection.invoke("SendMessage", "", "restart");
+    Connection.connection.invoke("RestartGame");
   }
 }

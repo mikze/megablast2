@@ -51,6 +51,16 @@ public class ChatHub : Hub
         }
     }
 
+        public void ChangeSkin(string newSkinName)
+    {
+        var player = Game.Players.FirstOrDefault(p => p.Id == Context.ConnectionId);
+        if (player != null)
+        {
+            Game.ChangeSkin(Context.ConnectionId, newSkinName);
+            Clients.All.SendAsync("SkinChanged", Context.ConnectionId, newSkinName);
+        }
+    }
+
     public async void GetMap()
     {
         await Clients.Caller.SendAsync("GetMap", Game.GenerateMap());
@@ -66,10 +76,11 @@ public class ChatHub : Hub
         }
     }
 
-    public void Start()
+    public async Task Start()
     {
         Game.Live = true;
-        Clients.All.SendAsync("Start");
+        await Game.RestartGame();
+        await Clients.All.SendAsync("Start");
     }
 
     public override async Task OnConnectedAsync()
@@ -79,14 +90,7 @@ public class ChatHub : Hub
         if (players.Count() > 4)
              await base.OnConnectedAsync();
 
-        if (players.Count() == 0)
-            Game.AddPlayer(new Player() { Id = Context.ConnectionId, Name = "mikze", PosX = 101, PosY = 100 });
-        else if (players.Count() == 1)
-            Game.AddPlayer(new Player() { Id = Context.ConnectionId, Name = "mikze", PosX = 99 + 14 * 50, PosY = 100 });
-        else if (players.Count() == 2)
-            Game.AddPlayer(new Player() { Id = Context.ConnectionId, Name = "mikze", PosX = 99 + 14 * 50, PosY = 99 + 13 * 50 });
-        else if (players.Count() == 3)
-            Game.AddPlayer(new Player() { Id = Context.ConnectionId, Name = "mikze", PosX = 101, PosY = 99 + 13 * 50 });
+        Game.AddPlayer(Context.ConnectionId);
 
         await Clients.All.SendAsync("Connected", Game.Players.Where(p => p.Live).ToArray(), Context.ConnectionId);
     }
@@ -94,7 +98,7 @@ public class ChatHub : Hub
     public override Task OnDisconnectedAsync(Exception? exception)
     {
         Game.RemovePlayer(Context.ConnectionId);
-        Clients.All.SendAsync("Disconnected", Context.ConnectionId);
+        Clients.All.SendAsync("Disconnected", Game.Players.Where(p => p.Live).ToArray(), Context.ConnectionId);
         return base.OnDisconnectedAsync(exception);
     }
 }

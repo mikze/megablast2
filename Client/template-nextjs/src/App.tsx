@@ -3,6 +3,8 @@ import { IRefPhaserGame, PhaserGame } from './game/PhaserGame';
 import { GameLevel } from './game/scenes/Chat';
 import { TextField } from '@mui/material';
 import { Preloader } from './game/scenes/Preloader';
+import { Scene } from 'phaser';
+import { Lobby } from './game/scenes/Lobby';
 
 function App() {
     // The sprite can only be moved in the MainMenu Scene
@@ -46,7 +48,7 @@ function App() {
 
     const changeName = () => {
         if (phaserRef.current) {
-            const scene = phaserRef.current.scene as GameLevel;
+            const scene = phaserRef.current.scene as Lobby;
 
             if (scene && scene.scene.key === 'GameLevel' || scene.scene.key === 'Lobby') {
                 scene.changeName(name);

@@ -5,13 +5,15 @@ import { Fire } from "../Player/Fire";
 import { PlayerManager } from "../scenes/PlayerManager";
 import { PlayerModel } from "../Player/PlayerModel";
 import { MapGenerator } from "../scenes/MapGenerator";
+import { resolve } from "path";
 
 
 export class Connection {
     static connection: HubConnection;
     static gameLevel: GameLevel
 
-    static CreateConnection() {
+     static CreateConnection() {
+        
         console.log("Create connection")
         Connection.connection = new HubConnectionBuilder()
             .withUrl("http://192.168.100.100:5166/Chat")
@@ -45,16 +47,20 @@ export class Connection {
                 });
         
                 Connection.connection.on("Connected", (players : PlayerModel[]) => {
-                    PlayerManager.UpdatePlayers(players);
+                    console.log(players)
+                    PlayerManager.UpdatePlayers(players.map(item => new PlayerModel(item.id, item.name, item.posX, item.posY, item.skin)));
                 });
-        
+
+                Connection.connection.on("SkinChanged", (id: string, newSkinName: string) => {
+                    PlayerManager.SkinChanged(newSkinName, id);
+                });
+
                 Connection.connection.on("NameChanged", (id: string, newName: string) => {
-                    if (Connection.gameLevel !== undefined)
-                        Connection.gameLevel.nameChanged(newName, id);
+                    PlayerManager.NameChanged(newName, id);
                 });
         
                 Connection.connection.on("Disconnected", (players : PlayerModel[]) => {
-                    PlayerManager.UpdatePlayers(players);
+                    PlayerManager.UpdatePlayers(players.map(item => new PlayerModel(item.id, item.name, item.posX, item.posY, item.skin)));
                 })
         
                 Connection.connection.on("GetMap", (map: Wall[]) => {
@@ -101,8 +107,10 @@ export class Connection {
             }
         };
 
-        // Start the connection.
-        start(Connection.connection);     
+        return new Promise((resolve, reject) =>
+        {
+            resolve(start(Connection.connection));     
+        });
     }
 
 }

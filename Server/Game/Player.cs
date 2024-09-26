@@ -15,6 +15,8 @@ public class Player : IEntity
     public bool Live { get; internal set; } = true;
     public bool Destroyed { get; set; }
     public bool Destructible { get; set; } = true;
+    public bool Ready { get; set; }
+    public string Skin { get; set; } = "playerSprite";
 
     public bool CheckCollistion(IEntity entity)
     {
