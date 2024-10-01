@@ -1,6 +1,3 @@
-using System.Collections.Concurrent;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.SignalR;
 
 public enum MoveDirection
@@ -45,6 +42,9 @@ public static class Game
         new Player(){ Id = string.Empty, Live = false},
         new Player(){ Id = string.Empty, Live = false}
     };
+
+    public static Player? MasterPlayer => Players.Any() ? Players[0] : null;
+    public static bool IsMasterPlayer(string id) => MasterPlayer is null ? false : MasterPlayer.Id == id; 
 
     public static List<IEvent> Events {get; set; } = new List<IEvent>();
     static bool generated = false;

@@ -9,19 +9,21 @@ import { Lobby } from './game/scenes/Lobby';
 function App() {
     // The sprite can only be moved in the MainMenu Scene
     const [canMoveSprite, setCanMoveSprite] = useState(true);
-
     //  References to the PhaserGame component (game and scene are exposed)
     const phaserRef = useRef<IRefPhaserGame | null>(null);
     const [message, setMessage] = useState<string>("");
     const [name, setName] = useState("");
     const [messages, setMessages] = useState<any>([])
+    const [isVisibleBackToLobby, setBackToLobbyIsVisible] = useState(true);
+    const [isVisibleStart, setStartIsVisible] = useState(true);
+
 
     const changeScene = () => {
 
         if (phaserRef.current) {
             let scene = phaserRef.current.scene as Preloader;
             scene.changeScene();
-            
+
         }
     }
 
@@ -41,7 +43,7 @@ function App() {
 
             if (scene && scene.scene.key === 'GameLevel') {
                 scene.sendMsg("user x", message);
-                setMessages([...messages, {msg: message}]);
+                setMessages([...messages, { msg: message }]);
             }
         }
     }
@@ -60,6 +62,14 @@ function App() {
     const currentScene = (scene: Phaser.Scene) => {
 
         setCanMoveSprite(scene.scene.key !== 'MainMenu');
+        if (scene.scene.key === "Lobby") {
+            setBackToLobbyIsVisible(false);
+            setStartIsVisible(true);
+        }
+        if (scene.scene.key === "GameLevel") {
+            setBackToLobbyIsVisible(true);
+            setStartIsVisible(false);
+        }
 
     }
 
@@ -71,21 +81,24 @@ function App() {
                     <TextField value={message} onChange={(e) => setMessage(e.target.value)} id="fullWidth" label="Filled" variant="filled" />
                     <button className="button" onClick={sendMsg}>Send msg</button>
                 </div>
-                {messages.map(m => m.msg)}
+                {messages.map((m: { msg: any; }) => m.msg)}
             </div>
             <div>
-                    <div>
-                        <button className="button" onClick={changeScene}>Start</button>
-                    </div>
+
+                {isVisibleStart && (<div>
+                    <button className="button" onClick={changeScene}>Start</button>
+                </div>)}
+                {isVisibleBackToLobby && (
                     <div>
                         <button className="button" onClick={backToLobby}>Back to lobby</button>
                     </div>
-                    <div>
-                        <input value={name} onChange={(e) => setName(e.target.value)} />
-                        <button className="button" onClick={changeName}>Change name</button>
-                    </div>
-                      
+                )}
+                <div>
+                    <input value={name} onChange={(e) => setName(e.target.value)} />
+                    <button className="button" onClick={changeName}>Change name</button>
                 </div>
+
+            </div>
         </div>
     )
 }

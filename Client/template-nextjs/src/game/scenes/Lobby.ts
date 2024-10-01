@@ -27,13 +27,13 @@ export class Lobby extends Scene {
      CreateConn() {
         if (Connection.connection === undefined || Connection.connection.state !== HubConnectionState.Connected) 
             {
-                console.log("Stage 1");
+                console.log("Stage 1: Create Connection");
                 Connection.CreateConnection()
                 .then(() => {
-                    console.log("Stage 2")
+                    console.log("Stage 2: Register Start")
                     new Promise((resolve, reject) => resolve(Connection.connection.on("Start", () => this.scene.start('GameLevel'))))
                     .then((r) => {
-                        console.log("Stage 3")
+                        console.log("Stage 3: Restart lobby")
                         PlayerManager.register(this);
                         new Promise((resolve, reject) => resolve(Connection.connection.invoke("RestartGame"))).then(() => this.SetNamePlayer())
                     })

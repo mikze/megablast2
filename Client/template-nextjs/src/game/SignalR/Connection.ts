@@ -45,6 +45,8 @@ export class Connection {
                         );
                     }
                 });
+
+                Connection.connection.on("ServerIsFull", () => { console.log("ServerisFull"); });
         
                 Connection.connection.on("Connected", (players : PlayerModel[]) => {
                     console.log(players)
