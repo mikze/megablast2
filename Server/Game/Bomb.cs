@@ -8,10 +8,11 @@ public static class Bomb
     {
         return new Task(async () =>
         {
-            try{
-            Console.WriteLine($"PLANT BOMB");
-            await Task.Delay(2000);
-            await SendToClients(Explode(x, y));
+            try
+            {
+                Console.WriteLine($"PLANT BOMB");
+                await Task.Delay(2000);
+                await SendToClients(Explode(x, y));
             }
             catch
             {
@@ -65,12 +66,18 @@ public static class Bomb
                 {
                     bool stop = false;
 
-                    foreach (var e in Game.GetEntities().Where(a => a is Wall || a is Player).Where(y => y is object && y.Destructible))
+                    foreach (var e in Game.GetEntities().Where(a => a is Bonus || a is Wall || a is Player).Where(y => y is object && y.Destructible))
                         if (e is object && e.Destructible && !e.Destroyed && e.CheckCollistion(f))
                         {                     
                             if(e is Wall)
                             {
                                 Console.WriteLine($"Destroy block: {e.PosX} {e.PosY};  fire: {f.PosX}  {f.PosY}");
+                                e.Destroyed = true;
+                                Game.CreateBonus(e);
+                            }
+                            if(e is Bonus)
+                            {
+                                Console.WriteLine($"Destroy bonus: {e.PosX} {e.PosY};  fire: {f.PosX}  {f.PosY}");
                                 e.Destroyed = true;
                             }
                             if(e is Player)

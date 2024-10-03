@@ -25,10 +25,16 @@ public class Player : IEntity
 
         var h1 = this;
         var h2 = entity;
-        return h1 != h2 && h1.PosX < h2.PosX + h2.Width &&
+        var coll = h1 != h2 && h1.PosX < h2.PosX + h2.Width &&
          h1.PosX + h1.Width > h2.PosX &&
          h1.PosY < h2.PosY + h2.Height &&
          h1.Height + h1.PosY > h2.PosY;
+        
+        if(coll && entity is Bonus)
+        {
+            entity.Destroyed = true;
+        }
+        return coll;
     }
 
     public void MovePlayer(MoveDirection moveDirection)

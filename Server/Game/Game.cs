@@ -220,4 +220,16 @@ public static class Game
         await hubGameService.hubContext.Clients.All.SendAsync("Connected", players);
         await hubGameService.hubContext.Clients.All.SendAsync("GetMap", newMap);
     }
+
+    internal static void CreateBonus(IEntity e)
+    {
+        Random rnd = new Random();
+        int result  = rnd.Next(1, 4);
+        if(result == 1)
+        {
+            var bonus = new Bonus(){ PosX = e.PosX, PosY = e.PosY, Destructible = true};
+            GetEntities().Add(bonus);
+            hubGameService.hubContext.Clients.All.SendAsync("SetBonus", bonus);
+        }
+    }
 }

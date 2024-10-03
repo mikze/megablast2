@@ -15,7 +15,8 @@ export class Lobby extends Scene {
     }
 
     preload() {
-        
+        this.load.audio("boom", [ 'assets/audio/boom.mp3', 'audio/boom.ogg', 'audio/boom.m4a' ]);   
+        this.load.audio("kill", [ 'assets/audio/kill.mp3' ]);  
     }
 
      RefreshPlayers()
@@ -31,7 +32,8 @@ export class Lobby extends Scene {
                 Connection.CreateConnection()
                 .then(() => {
                     console.log("Stage 2: Register Start")
-                    new Promise((resolve, reject) => resolve(Connection.connection.on("Start", () => this.scene.start('GameLevel'))))
+                    new Promise((resolve, reject) => 
+                        resolve(Connection.connection.on("Start", () => this.scene.start('GameLevel'))))
                     .then((r) => {
                         console.log("Stage 3: Restart lobby")
                         PlayerManager.register(this);
@@ -101,9 +103,7 @@ export class Lobby extends Scene {
         this.camera.setBackgroundColor(0x00ff00);
 
         this.background = this.add.image(512, 384, 'background');
-        this.background.setAlpha(0.5);
-
-        
+        this.background.setAlpha(0.5);        
 
         EventBus.emit('current-scene-ready', this);
     }

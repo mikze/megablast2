@@ -2,8 +2,8 @@ import { Scene } from "phaser";
 
 export class Bomb
 {
-    x : number
-    y : number
+    posX : number
+    posY : number
     scene: Scene
 
     constructor(x : number, y : number, scene: Scene) 
@@ -17,6 +17,6 @@ export class Bomb
     {
       let sprite = this.scene.add.image(this.x + 8, this.y + 8, "bomb").setScale(0.8);
 
-      setTimeout(() => sprite.destroy(), 2000);
+      setTimeout(() => { this.scene.sound.play("boom"); sprite.destroy(); } , 2000);
     }
 }

@@ -6,9 +6,12 @@ import { MapGenerator } from './MapGenerator';
 import { HubConnectionState } from '@microsoft/signalr';
 import { Fire } from '../Player/Fire';
 import { PlayerManager } from './PlayerManager';
+import { Bonus } from '../Player/Bonus';
+import { BonusModel } from '../Player/BonusModel';
 
 
 export class GameLevel extends Scene {
+
 
 
   camera: Phaser.Cameras.Scene2D.Camera;
@@ -23,13 +26,17 @@ export class GameLevel extends Scene {
   players: Player[];
   cameraSet: boolean
   entities : IEntity[]
+  bonuses : Bonus[]
 
 
   constructor() {
     super('GameLevel');
+
     this.players = new Array<Player>();
 
     this.entities = new Array<IEntity>();
+
+    this.bonuses = new Array<Bonus>();
   }
 
   setMap() {
@@ -123,6 +130,10 @@ export class GameLevel extends Scene {
 bombPlanted(id :string)
 {
   this.players.find(p => p.id === id)?.PlantBomb();
+}
+
+setBonus(bonus: BonusModel) {
+  this.entities.push(new Bonus(bonus.id, bonus.posX, bonus.posY, bonus.bonusType, this));
 }
 
   setPlayers() {

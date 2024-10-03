@@ -4,8 +4,8 @@ import { Wall } from "../Player/Wall";
 import { Fire } from "../Player/Fire";
 import { PlayerManager } from "../scenes/PlayerManager";
 import { PlayerModel } from "../Player/PlayerModel";
+import { BonusModel } from "../Player/BonusModel";
 import { MapGenerator } from "../scenes/MapGenerator";
-import { resolve } from "path";
 
 
 export class Connection {
@@ -72,6 +72,11 @@ export class Connection {
                 Connection.connection.on("BombPlanted", (id: string) => {
                     if (Connection.gameLevel !== undefined)
                         Connection.gameLevel.bombPlanted(id)
+                });
+
+                Connection.connection.on("SetBonus", (bonus: BonusModel) => {
+                    if (Connection.gameLevel !== undefined)
+                        Connection.gameLevel.setBonus(bonus)
                 });
         
                 Connection.connection.on("RemoveEntity", (id: string) => {
