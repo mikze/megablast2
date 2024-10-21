@@ -2,14 +2,14 @@
 public class Player : IEntity
 {
     public bool Dead { get; set; }
-    public int Speed { get; set; } = 1;
+    public double Speed { get; set; } = 1;
     public string? Name { get; set; }
-    public int PosX { get; set; }
-    public int PosY { get; set; }
+    public double PosX { get; set; }
+    public double PosY { get; set; }
     public required string Id { get; init; }
     public bool Collision { get; set; } = true;
-    public int Width { get; set; } = 32;
-    public int Height { get; set; } = 32;
+    public int Width { get; set; } = 36;
+    public int Height { get; set; } = 43;
     public bool Moved { get; set; }
     public MoveDirection MoveDirection { get; set; }
     public bool Live { get; internal set; } = true;
@@ -17,6 +17,8 @@ public class Player : IEntity
     public bool Destructible { get; set; } = true;
     public bool Ready { get; set; }
     public string Skin { get; set; } = "playerSprite";
+    public int MaxBombs { get; set; } = 1;
+    public int Lives { get; set; } = 1;
 
     public bool CheckCollistion(IEntity entity)
     {
@@ -64,17 +66,39 @@ public class Player : IEntity
             {
                 if (entity.CheckCollistion(this))
                 {
+                    if (entity is Bomb && ((Bomb)entity).Owner == this)
+                    {
+                        var bomb = entity as Bomb;
+                        if (bomb != null)
+                        {
+                            if(bomb.Touched)
+                                break;
+                        }
+                    }
+
                     PosX = oldPosX;
                     PosY = oldPosY;
                     break;
+                }
+                else
+                {
+                    if (entity is Bomb && ((Bomb)entity).Owner == this)
+                    {
+                        var bomb = entity as Bomb;
+                        if(bomb != null)
+                            bomb.Touched = false;
+                    }
                 }
             }
         }
     }
 
-    internal void PlantBomb()
+    internal Bomb? PlantBomb()
     {
-        if(!Dead)
-            Game.PlantBomb(PosX+16, PosY+16);
+        if(Game.Entities.Where(e => e is Bomb).Where(e => (e as Bomb).Owner == this && !e.Destroyed).Count() < MaxBombs)
+        if (!Dead)
+            return Game.PlantBomb(PosX + 16, PosY + 16, this);
+
+        return null;
     }
 }

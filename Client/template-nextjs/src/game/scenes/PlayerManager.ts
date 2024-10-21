@@ -12,6 +12,11 @@ export class PlayerManager {
         }
     }
 
+    static DestroySprites()
+    {
+        PlayerManager.players.map(p => { p?.sprite?.destroy(); p?.player?.sprite?.destroy(); } )
+    }
+
     static NameChanged(newName: string, id: string) {     
         new Promise((r, c) => r(PlayerManager.changeName(newName, id))).then(() => PlayerManager.emit());
     }
@@ -19,12 +24,20 @@ export class PlayerManager {
     static players: PlayerModel[];
 
     static UpdatePlayers(players: PlayerModel[]) {
+        console.log("RefreshPlayers")
         new Promise((r, c) => r(PlayerManager.setPlayers(players))).then(() => PlayerManager.emit());
     }
     static setPlayers(players: PlayerModel[])
     {
         if(PlayerManager.players !== undefined)
-            new Promise((r,c) => {r(PlayerManager.players.map(p => p.sprite.destroy()))}).then(() => PlayerManager.players = players);
+            new Promise((r,c) => 
+        {
+            r(PlayerManager.DestroySprites());
+        })
+        .then(() => { 
+            console.log("Restart players ", players)
+            PlayerManager.players = players;
+        });
         else
             PlayerManager.players = players;
     }

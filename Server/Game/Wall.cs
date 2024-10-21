@@ -4,10 +4,10 @@ public class Wall : IEntity
     public string Id { get; init; }
     public bool Destructible { get; set; } = false;
     public bool Collision { get; set; } = true;
-    public int PosX { get; set; }
-    public int PosY { get; set; }
-    public int Width { get; set; } = 32;
-    public int Height { get; set; } = 32;
+    public double PosX { get; set; }
+    public double PosY { get; set; }
+    public int Width { get; set; } = 33;
+    public int Height { get; set; } = 33;
     public bool Destroyed { get; set; }
 
     public Wall()

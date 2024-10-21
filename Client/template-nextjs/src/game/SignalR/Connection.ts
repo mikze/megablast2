@@ -1,11 +1,12 @@
 import { HubConnection, HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
-import { GameLevel } from "../scenes/Chat";
+import { GameLevel } from "../scenes/GameLevel";
 import { Wall } from "../Player/Wall";
 import { Fire } from "../Player/Fire";
 import { PlayerManager } from "../scenes/PlayerManager";
 import { PlayerModel } from "../Player/PlayerModel";
 import { BonusModel } from "../Player/BonusModel";
 import { MapGenerator } from "../scenes/MapGenerator";
+import { BombModel } from "../Player/BombModel";
 
 
 export class Connection {
@@ -49,7 +50,6 @@ export class Connection {
                 Connection.connection.on("ServerIsFull", () => { console.log("ServerisFull"); });
         
                 Connection.connection.on("Connected", (players : PlayerModel[]) => {
-                    console.log(players)
                     PlayerManager.UpdatePlayers(players.map(item => new PlayerModel(item.id, item.name, item.posX, item.posY, item.skin)));
                 });
 
@@ -69,9 +69,14 @@ export class Connection {
                     MapGenerator.SetMap(map);
                     })
         
-                Connection.connection.on("BombPlanted", (id: string) => {
+                Connection.connection.on("BombPlanted", (bombModel: BombModel) => {
                     if (Connection.gameLevel !== undefined)
-                        Connection.gameLevel.bombPlanted(id)
+                        Connection.gameLevel.bombPlanted(bombModel)
+                });
+
+                Connection.connection.on("BombExplode", (bombModel: BombModel) => {
+                    if (Connection.gameLevel !== undefined)
+                        Connection.gameLevel.bombExplode(bombModel)
                 });
 
                 Connection.connection.on("SetBonus", (bonus: BonusModel) => {
@@ -106,7 +111,10 @@ export class Connection {
         
                 Connection.connection.on("BackToLobby", (id: string) => {
                     if (Connection.gameLevel !== undefined)
+                    {
+                        PlayerManager.DestroySprites();
                         Connection.gameLevel.scene.start('Lobby');
+                    }
                 });
             } catch (err) {
                 console.log(err);

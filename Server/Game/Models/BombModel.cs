@@ -1,6 +1,6 @@
-public class PlayerModel
+public class BombModel
 {
-    public PlayerModel(Player p)
+    public BombModel(Bomb p)
     {
         PosX = p.PosX;
         PosY = p.PosY;

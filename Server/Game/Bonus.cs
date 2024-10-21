@@ -3,8 +3,8 @@ public class Bonus : IEntity
     public string Id { get; init; }
     public bool Destructible { get; set; } = false;
     public bool Collision { get; set; } = true;
-    public int PosX { get; set; }
-    public int PosY { get; set; }
+    public double PosX { get; set; }
+    public double PosY { get; set; }
     public int Width { get; set; } = 32;
     public int Height { get; set; } = 32;
     public bool Destroyed { get; set; }
@@ -30,8 +30,12 @@ public class Bonus : IEntity
         if(coll && entity is Player)
         {
             var p = entity as Player;
+            if(p != null && BonusType == 3)
+                p.Lives += 1;
             if(p != null && BonusType == 2)
-                p.Speed += 2;
+                p.Speed += 0.1;
+            if (p != null && BonusType == 1)
+                p.MaxBombs += 1;
             Destroyed = true;
         }
 

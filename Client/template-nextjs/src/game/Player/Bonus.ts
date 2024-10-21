@@ -24,7 +24,7 @@ export class Bonus
         if(bonusType === 2)
             this.sprite = scene.add.image(x + 8, y + 8, "dead").setScale(0.8)
         if(bonusType === 3)
-            this.sprite = scene.add.image(x + 8, y + 8, "logo").setScale(0.8)
+            this.sprite = scene.add.image(x + 8, y + 8, "1up").setScale(0.2)
         
     }
 }

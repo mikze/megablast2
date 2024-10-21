@@ -1,5 +1,5 @@
 import { Wall } from "../Player/Wall";
-import { GameLevel } from "./Chat";
+import { GameLevel } from "./GameLevel";
 
 export class MapGenerator {
     static map: Wall[]
@@ -29,9 +29,9 @@ export class MapGenerator {
         
         MapGenerator.map.map(wall => {
                 if(!wall.destructible)
-                    wall.sprite = gameLevel.add.image(wall.posX, wall.posY, MapGenerator.mapDic[1].sheetName, MapGenerator.mapDic[1].x).setScale(1);
+                    wall.sprite = gameLevel.add.image(wall.posX, wall.posY, MapGenerator.mapDic[1].sheetName, MapGenerator.mapDic[1].x).setScale(1.2);
                 else
-                    wall.sprite = gameLevel.add.image(wall.posX, wall.posY, MapGenerator.mapDic[4].sheetName).setScale(1);
+                    wall.sprite = gameLevel.add.image(wall.posX, wall.posY, MapGenerator.mapDic[4].sheetName).setScale(1.2);
 
                     gameLevel.entities.push(wall);
             })

@@ -41,10 +41,6 @@ import { Bomb } from "./Bomb"
       this.textName.destroy();
     }
 
-    PlantBomb()
-    {
-      new Bomb(this.posX, this.posY, this.scene).PlantBomb()
-    }
     Say(message : string)
     {
       let msg = this.scene.add.text(this.posX, this.posY + 20, this.name+": "+message, {

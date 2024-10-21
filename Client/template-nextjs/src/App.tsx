@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { IRefPhaserGame, PhaserGame } from './game/PhaserGame';
-import { GameLevel } from './game/scenes/Chat';
+import { GameLevel } from './game/scenes/GameLevel';
 import { TextField } from '@mui/material';
 import { Preloader } from './game/scenes/Preloader';
 import { Scene } from 'phaser';

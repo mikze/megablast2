@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.SignalR;
 
 public class ChatHub : Hub
 {
+    static List<string> clients = new List<string>();
     public async Task SendMessage(string user, string message)
     {
         var player = Game.Players.FirstOrDefault(p => p.Id == Context.ConnectionId);
@@ -14,6 +15,9 @@ public class ChatHub : Hub
     {
         if (Game.IsMasterPlayer(Context.ConnectionId))
         {
+            foreach(var c in clients)
+                Console.WriteLine($"RestartGame to client {c}");
+
             await Game.RestartGame();
         }
     }
@@ -30,8 +34,9 @@ public class ChatHub : Hub
         var player = Game.Players.FirstOrDefault(p => p.Id == Context.ConnectionId);
         if (player != null)
         {
-            Clients.All.SendAsync("BombPlanted", Context.ConnectionId);
-            player.PlantBomb();
+            var bomb = player.PlantBomb();
+            if (bomb != null)
+                Clients.All.SendAsync("BombPlanted", new BombModel(bomb));
         }
     }
 
@@ -55,11 +60,8 @@ public class ChatHub : Hub
         }
     }
 
-    public async void GetMap()
-    {
-        await Clients.Caller.SendAsync("GetMap", Game.GenerateMap());
-    }
-
+    public async void GetMap() => await Clients.Caller.SendAsync("GetMap", Game.GetMap());
+    
     public void BackToLobby()
     {
         if (Game.IsMasterPlayer(Context.ConnectionId))
@@ -79,12 +81,17 @@ public class ChatHub : Hub
         {
             Game.Live = true;
             await Game.RestartGame();
+            foreach(var c in clients)
+                Console.WriteLine($"START to client {c}");
+
             await Clients.All.SendAsync("Start");
         }
     }
 
     public override async Task OnConnectedAsync()
     {
+        Console.WriteLine($"Connected {Context.ConnectionId}");
+        clients.Add(Context.ConnectionId);
         var players = Game.Players.Where(p => p.Live);
 
         if (players.Count() >= 4)
@@ -103,6 +110,8 @@ public class ChatHub : Hub
 
     public override Task OnDisconnectedAsync(Exception? exception)
     {
+        Console.WriteLine($"Disconnected {Context.ConnectionId}");
+        clients.Remove(Context.ConnectionId);
         Game.RemovePlayer(Context.ConnectionId);
         Clients.All.SendAsync("Disconnected", Game.Players.Where(p => p.Live).ToArray(), Context.ConnectionId);
         return base.OnDisconnectedAsync(exception);

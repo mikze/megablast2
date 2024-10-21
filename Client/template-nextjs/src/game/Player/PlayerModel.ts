@@ -1,3 +1,5 @@
+import { Player } from "./Player"
+
 export class PlayerModel {
     
     id : string
@@ -9,6 +11,7 @@ export class PlayerModel {
     dead : boolean
     skin : string
     sprite : Phaser.GameObjects.Sprite
+    player : Player
 
     constructor(id : string, name : string, x : number, y : number, skin : string) {
         this.id = id;

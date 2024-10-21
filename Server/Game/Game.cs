@@ -11,28 +11,27 @@ public enum MoveDirection
 public static class Game
 {
     public static bool Live { get; set; } = false;
-    public static int[][]? Map;
     public static List<IEntity> Entities = new List<IEntity>();
     public static HubGameService hubGameService;
     public static object LockEntities;
     public static List<IEntity> GetEntities()
     {
-        if(LockEntities is null)
+        if (LockEntities is null)
             LockEntities = new object();
 
-        lock(LockEntities)
+        lock (LockEntities)
         {
             return Entities;
         }
     }
     public static void AddEntities(IEntity entity)
     {
-        if(LockEntities is null)
+        if (LockEntities is null)
             LockEntities = new object();
 
-        lock(LockEntities)
+        lock (LockEntities)
         {
-         Entities.Add(entity);
+            Entities.Add(entity);
         }
     }
     public static Player[] Players { get; set; } =
@@ -44,57 +43,14 @@ public static class Game
     };
 
     public static Player? MasterPlayer => Players.Any() ? Players[0] : null;
-    public static bool IsMasterPlayer(string id) => MasterPlayer is null ? false : MasterPlayer.Id == id; 
-
-    public static List<IEvent> Events {get; set; } = new List<IEvent>();
-    static bool generated = false;
+    public static bool IsMasterPlayer(string id) => MasterPlayer is null ? false : MasterPlayer.Id == id;
     public static Wall[] GenerateMap()
     {
-        if(generated)
-            return GetEntities().Where(e => e is Wall).Cast<Wall>().ToArray();
-            
-        Map =                   [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                                 [1,0,0,4,0,4,4,4,4,0,4,0,4,4,0,0,1],
-                                 [1,0,4,4,4,0,0,4,0,0,4,0,0,4,4,0,1],
-                                 [1,4,4,4,4,0,0,4,4,4,4,0,0,4,4,4,1],
-                                 [1,4,0,4,4,4,4,4,4,4,0,0,0,0,4,4,1],
-                                 [1,4,0,4,0,0,4,0,0,0,0,0,0,0,0,4,1],
-                                 [1,4,4,4,4,4,4,4,4,4,4,0,0,0,0,4,1],
-                                 [1,4,4,4,4,4,4,0,4,0,0,0,0,0,0,4,1],
-                                 [1,4,4,4,0,0,4,0,4,0,0,0,0,0,0,4,1],
-                                 [1,0,0,4,0,0,0,0,4,0,0,0,0,0,0,4,1],
-                                 [1,4,4,4,0,0,0,4,4,4,4,4,4,0,0,4,1],
-                                 [1,4,0,4,0,0,0,0,0,0,0,0,0,0,0,0,1],
-                                 [1,4,4,4,4,0,0,0,0,0,0,0,0,0,0,4,1],
-                                 [1,0,4,4,4,0,0,0,0,0,0,0,4,4,4,0,1],
-                                 [1,0,0,4,4,4,4,4,4,4,4,4,4,4,0,0,1],
-                                 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]];
-
-        int X = 50;
-        int Y = 50;
-        
-        foreach(var y in Map)
-        {
-            foreach(var x in y)
-            {   
-                if(x != 0)
-                {
-                    var wall = new Wall()
-                    {
-                        PosX = X,
-                        PosY = Y,
-                        Destructible = x != 1
-                    };
-                    GetEntities().Add(wall);
-                }
-                X += 50;
-            }
-            Y += 50;
-            X = 50;
-        }
-        generated = true;
-        return GetEntities().Where(e => e is Wall).Cast<Wall>().ToArray();
+        GetEntities().AddRange(MapHandler.GenerateMap());
+        return GetMap();
     }
+
+    public static Wall[] GetMap() => GetEntities().Where(e => e is Wall).Cast<Wall>().ToArray();
 
     public static void AddPlayer(string id)
     {
@@ -102,20 +58,20 @@ public static class Game
         {
             Player? newPlayer = null;
 
-            switch(idPlayer)
+            switch (idPlayer)
             {
                 case 0:
                     newPlayer = new Player() { Id = id, Name = "mikze", PosX = 101, PosY = 100 };
-                break;
+                    break;
                 case 1:
                     newPlayer = new Player() { Id = id, Name = "mikze", PosX = 99 + 14 * 50, PosY = 100 };
-                break;
+                    break;
                 case 2:
                     newPlayer = new Player() { Id = id, Name = "mikze", PosX = 99 + 14 * 50, PosY = 99 + 13 * 50 };
-                break;
+                    break;
                 case 3:
                     newPlayer = new Player() { Id = id, Name = "mikze", PosX = 101, PosY = 99 + 13 * 50 };
-                break;
+                    break;
             }
 
             if (newPlayer != null)
@@ -130,7 +86,7 @@ public static class Game
     {
         for (int i = 0; i < 4; i++)
         {
-            if(Players[i].Live == false)
+            if (Players[i].Live == false)
             {
                 number = i;
                 return true;
@@ -147,7 +103,7 @@ public static class Game
         if (player != null)
         {
             player.Live = false;
-            lock(LockEntities)
+            lock (LockEntities)
             {
                 Entities.Remove(player);
             }
@@ -171,48 +127,51 @@ public static class Game
             player.Name = newName;
     }
 
-     public static void ChangeSkin(string id, string newSkinName)
+    public static void ChangeSkin(string id, string newSkinName)
     {
         var player = Players.FirstOrDefault(p => p.Id == id);
         if (player != null)
             player.Skin = newSkinName;
     }
-    
-    public static void PlantBomb(int x, int y) 
-        => Bomb.Plant(x, y).Start();
+
+    public static Bomb PlantBomb(double x, double y, Player owner)
+    {
+        var bomb = new Bomb(x, y, owner);
+        AddEntities(bomb);
+        return bomb;
+    }
 
     public static async Task RestartGame()
     {
         GetEntities().RemoveAll(e => e is Wall);
-        generated = false;
 
         var newMap = GenerateMap();
         var players = Players.Where(p => p.Live).ToArray();
 
         for (int i = 0; i < players.Length; i++)
         {
-           if(i == 0)
-           {
-                players[0].PosX = 101; 
+            if (i == 0)
+            {
+                players[0].PosX = 101;
                 players[0].PosY = 100;
                 players[0].Dead = false;
-                
-           }
-            else if(i == 1)
+
+            }
+            else if (i == 1)
             {
-                players[1].PosX = 99 + 14 * 50; 
+                players[1].PosX = 99 + 14 * 50;
                 players[1].PosY = 100;
                 players[1].Dead = false;
             }
-            else if(i == 2)
+            else if (i == 2)
             {
-                players[2].PosX = 99 + 14 * 50; 
+                players[2].PosX = 99 + 14 * 50;
                 players[2].PosY = 99 + 13 * 50;
                 players[2].Dead = false;
             }
-            else if(i == 3)
+            else if (i == 3)
             {
-                players[3].PosX = 101; 
+                players[3].PosX = 101;
                 players[3].PosY = 99 + 13 * 50;
                 players[3].Dead = false;
             }
@@ -224,10 +183,10 @@ public static class Game
     internal static void CreateBonus(IEntity e)
     {
         Random rnd = new Random();
-        int result  = rnd.Next(1, 4);
-        if(result == 1)
+        int result = rnd.Next(1, 4);
+        if (result == 1)
         {
-            var bonus = new Bonus(){ PosX = e.PosX, PosY = e.PosY, Destructible = true};
+            var bonus = new Bonus() { PosX = e.PosX, PosY = e.PosY, Destructible = true };
             GetEntities().Add(bonus);
             hubGameService.hubContext.Clients.All.SendAsync("SetBonus", bonus);
         }
