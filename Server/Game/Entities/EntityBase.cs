@@ -4,7 +4,7 @@ namespace Server.Game.Entities;
 
 public abstract class EntityBase : IEntity
 {
-    public string Id { get; init; }
+    public string Id { get; init; } = new Guid().ToString();
     public bool Collision { get; set; }
     public double PosX { get; set; }
     public double PosY { get; set; }

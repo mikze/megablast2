@@ -6,50 +6,74 @@ namespace Server.Services;
 public class HubGameService : BackgroundService
 {
     public readonly IHubContext<ChatHub> HubContext;
+
     public HubGameService(IHubContext<ChatHub> hubContext)
     {
-        this.HubContext = hubContext;
+        HubContext = hubContext;
         Game.Game.HubGameService = this;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await ConsumeEvents();
+        await ConsumeEventsAsync();
     }
 
-    private Task ConsumeEvents()
+    private Task ConsumeEventsAsync()
     {
-        var tsk = new Task(() =>
+        var task = new Task(EventProcessingLoop);
+        task.Start();
+        return task;
+    }
+
+    private void EventProcessingLoop()
+    {
+        while (true)
         {
-            while (true)
+            try
             {
-                try
-                {
-                    foreach(var e in Game.Game.GetEntities().Where(e => e.Destroyed))
-                        HubContext.Clients.All.SendAsync("RemoveEntity", e.Id);
+                RemoveDestroyedEntities();
 
-                    lock(Game.Game.LockObject)
-                    {
-                        Game.Game.Entities.RemoveAll(e => e.Destroyed);
-                    }
+                MoveLivePlayers();
 
-                    foreach(var player in Game.Game.Players.Where(p => p is { Live: true, Dead: false } && p.MoveDirection != MoveDirection.None))
-                    {
-                        player.Moved = true;
-                        player.MovePlayer(player.MoveDirection);
-                        player.Moved = false;
-                    }
-                    Thread.Sleep(10);
-                    if(Game.Game.Live)
-                        HubContext.Clients.All.SendAsync("MovePlayer", Game.Game.Players.Select(p => new PlayerModel(p)).ToArray());
-                }
-                catch(Exception e)
+                Thread.Sleep(10);
+
+                if (Game.Game.Live)
                 {
-                    Console.WriteLine(e.Message);
+                    SendPlayerLocations();
                 }
             }
-        });
-        tsk.Start();
-        return tsk;
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+    }
+
+    private void RemoveDestroyedEntities()
+    {
+        foreach (var entity in Game.Game.GetEntities().Where(e => e.Destroyed))
+        {
+            HubContext.Clients.All.SendAsync("RemoveEntity", entity.Id);
+        }
+
+        lock (Game.Game.LockObject)
+        {
+            Game.Game.Entities.RemoveAll(e => e.Destroyed);
+        }
+    }
+
+    private void MoveLivePlayers()
+    {
+        foreach (var player in Game.Game.Players.Where(p =>
+                     p is { Live: true, Dead: false } && p.MoveDirection != MoveDirection.None))
+        {
+            player.MovePlayer(player.MoveDirection);
+        }
+    }
+
+    private void SendPlayerLocations()
+    {
+        var playerModels = Game.Game.Players.Select(p => new PlayerModel(p)).ToArray();
+        HubContext.Clients.All.SendAsync("MovePlayer", playerModels);
     }
 }

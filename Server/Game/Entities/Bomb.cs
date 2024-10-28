@@ -18,12 +18,13 @@ public class Bomb : EntityBase
         Height = Width = 36;
         Collision = true;
 
-        new Task( () =>
+        new Task(() =>
         {
             try
             {
-                Console.WriteLine($"PLANT BOMB");
+                Console.WriteLine($"PLANT BOMB {Id}");
                 Thread.Sleep(2000);
+                Console.WriteLine($"Explode BOMB {Id}");
                 Explode();
             }
             catch(Exception e)

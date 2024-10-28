@@ -155,10 +155,9 @@ public static class Game
 
     public static void ChangeSkin(string id, string newSkinName)
     {
-        var player = Players.FirstOrDefault(p => p.Id == id);
-        if (player != null)
-        {
-        }
+        var targetPlayer = Players.FirstOrDefault(p => p.Id == id);
+        if (targetPlayer != null)
+            targetPlayer.Skin = newSkinName;
     }
 
     public static Bomb PlantBomb(double x, double y, Player owner)
