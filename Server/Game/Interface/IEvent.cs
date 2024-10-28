@@ -1,3 +1,6 @@
+using Server.Game;
+using Server.Game.Entities;
+
 public interface IEvent
 {
 

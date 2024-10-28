@@ -1,13 +1,15 @@
-
 using Microsoft.AspNetCore.SignalR;
+using Server.Game;
+
+namespace Server.Services;
 
 public class HubGameService : BackgroundService
 {
-    public IHubContext<ChatHub> hubContext;
+    public readonly IHubContext<ChatHub> HubContext;
     public HubGameService(IHubContext<ChatHub> hubContext)
     {
-        this.hubContext = hubContext;
-        Game.hubGameService = this;
+        this.HubContext = hubContext;
+        Game.Game.HubGameService = this;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -15,7 +17,7 @@ public class HubGameService : BackgroundService
         await ConsumeEvents();
     }
 
-    public Task ConsumeEvents()
+    private Task ConsumeEvents()
     {
         var tsk = new Task(() =>
         {
@@ -23,27 +25,27 @@ public class HubGameService : BackgroundService
             {
                 try
                 {
-                    foreach(var e in Game.GetEntities().Where(e => e.Destroyed))
-                        hubContext.Clients.All.SendAsync("RemoveEntity", e.Id);
+                    foreach(var e in Game.Game.GetEntities().Where(e => e.Destroyed))
+                        HubContext.Clients.All.SendAsync("RemoveEntity", e.Id);
 
-                    lock(Game.LockEntities)
+                    lock(Game.Game.LockObject)
                     {
-                        Game.Entities.RemoveAll(e => e.Destroyed);
+                        Game.Game.Entities.RemoveAll(e => e.Destroyed);
                     }
 
-                    foreach(var player in Game.Players.Where(p => p.Live && !p.Dead && p.MoveDirection != MoveDirection.none))
+                    foreach(var player in Game.Game.Players.Where(p => p is { Live: true, Dead: false } && p.MoveDirection != MoveDirection.None))
                     {
                         player.Moved = true;
                         player.MovePlayer(player.MoveDirection);
                         player.Moved = false;
                     }
                     Thread.Sleep(10);
-                    if(Game.Live)
-                        hubContext.Clients.All.SendAsync("MovePlayer", Game.Players.Select(p => new PlayerModel(p)).ToArray());
+                    if(Game.Game.Live)
+                        HubContext.Clients.All.SendAsync("MovePlayer", Game.Game.Players.Select(p => new PlayerModel(p)).ToArray());
                 }
-                catch
+                catch(Exception e)
                 {
-
+                    Console.WriteLine(e.Message);
                 }
             }
         });

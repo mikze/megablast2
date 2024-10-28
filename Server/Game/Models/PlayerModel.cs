@@ -1,3 +1,5 @@
+using Server.Game.Entities;
+
 public class PlayerModel
 {
     public PlayerModel(Player p)

@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.SignalR;
+using Server.Game;
 
 public class ChatHub : Hub
 {
-    static List<string> clients = new List<string>();
+    private static readonly List<string> clients = new List<string>();
     public async Task SendMessage(string user, string message)
     {
         var player = Game.Players.FirstOrDefault(p => p.Id == Context.ConnectionId);
@@ -25,39 +26,34 @@ public class ChatHub : Hub
     public void MovePlayer(int moveDirection)
     {
         var player = Game.Players.FirstOrDefault(p => p.Id == Context.ConnectionId);
-        if (player != null && !player.Moved)
+        if (player is { Moved: false })
             player.MoveDirection = (MoveDirection)moveDirection;
     }
 
     public void PlantBomb()
     {
         var player = Game.Players.FirstOrDefault(p => p.Id == Context.ConnectionId);
-        if (player != null)
-        {
-            var bomb = player.PlantBomb();
-            if (bomb != null)
-                Clients.All.SendAsync("BombPlanted", new BombModel(bomb));
-        }
+        var bomb = player?.PlantBomb();
+        if (bomb != null)
+            Clients.All.SendAsync("BombPlanted", new BombModel(bomb));
     }
 
     public void ChangeName(string newName)
     {
         var player = Game.Players.FirstOrDefault(p => p.Id == Context.ConnectionId);
-        if (player != null)
-        {
-            Game.ChangeName(Context.ConnectionId, newName);
-            Clients.All.SendAsync("NameChanged", Context.ConnectionId, newName);
-        }
+        if (player is null) return;
+        
+        Game.ChangeName(Context.ConnectionId, newName);
+        Clients.All.SendAsync("NameChanged", Context.ConnectionId, newName);
     }
 
         public void ChangeSkin(string newSkinName)
     {
         var player = Game.Players.FirstOrDefault(p => p.Id == Context.ConnectionId);
-        if (player != null)
-        {
-            Game.ChangeSkin(Context.ConnectionId, newSkinName);
-            Clients.All.SendAsync("SkinChanged", Context.ConnectionId, newSkinName);
-        }
+        if (player is null) return;
+        
+        Game.ChangeSkin(Context.ConnectionId, newSkinName);
+        Clients.All.SendAsync("SkinChanged", Context.ConnectionId, newSkinName);
     }
 
     public async void GetMap() => await Clients.Caller.SendAsync("GetMap", Game.GetMap());

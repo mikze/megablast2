@@ -1,3 +1,5 @@
+using Server.Game.Entities;
+
 public class BombModel
 {
     public BombModel(Bomb p)
