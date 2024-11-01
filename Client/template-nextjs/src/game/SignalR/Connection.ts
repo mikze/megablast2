@@ -13,7 +13,7 @@ export class Connection {
     static connection: HubConnection;
     static gameLevel: GameLevel;
 
-    private static URL = "http://192.168.100.25:5166/Chat";
+    private static URL = "http://192.168.100.100:5166/Chat";
     private static LOG_MESSAGE_CONNECTION = "Create connection";
 
     static CreateConnection() {
@@ -67,8 +67,6 @@ export class Connection {
     private static handleMovePlayer(obj: [PlayerModel]): void {
         if (Connection.gameLevel !== undefined) {
             obj.map(p => {
-                if (p.posX === undefined)
-                    console.log(p.posX);
                 Connection.gameLevel.recMovePlayer(p.posX, p.posY, p.id);
             });
         }

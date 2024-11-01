@@ -14,7 +14,10 @@ export class PlayerManager {
 
     static DestroySprites()
     {
-        PlayerManager.players.map(p => { p?.sprite?.destroy(); p?.player?.sprite?.destroy(); } )
+        PlayerManager.players.map(p => 
+        {
+                p?.sprite?.destroy();
+        })
     }
 
     static NameChanged(newName: string, id: string) {     

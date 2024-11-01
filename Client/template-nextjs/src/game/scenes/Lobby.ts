@@ -22,7 +22,7 @@ export class Lobby extends Scene {
         super('Lobby');
     }
 
-    private RefreshPlayers(): void {
+    public RefreshPlayers(): void {
         Promise.resolve(this.gameText.map(text => text.destroy()))
             .then(() => this.setPlayerNames());
     }

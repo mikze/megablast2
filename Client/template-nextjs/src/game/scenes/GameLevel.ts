@@ -25,19 +25,27 @@ export class GameLevel extends Scene {
     cameraSet: boolean;
     entities: IEntity[];
     bonuses: Bonus[];
+    players: Player[];
 
     constructor() {
+        console.log("GameLevel constructor");
         super('GameLevel');
         this.entities = [];
         this.bonuses = [];
+        this.players = [];
     }
 
+    public RefreshPlayers(): void {
+        console.log("RefreshPlayers GameLevel");
+        //this.setPlayers();
+    }
+    
     private invokeConnection(action: string, ...args: any[]) {
         Connection.connection.invoke(action, ...args);
     }
 
     private getPlayerById(id: string) {
-        return PlayerManager.players.find(p => p.id === id);
+        return this.players.find(p => p.id === id);
     }
 
     private handleKeyInputs() {
@@ -102,11 +110,11 @@ export class GameLevel extends Scene {
     }
 
     killPlayer(id: string) {
-        this.getPlayerById(id)?.player.Dead();
+        this.getPlayerById(id)?.Dead();
     }
 
     resurrectPlayer(id: string) {
-        this.getPlayerById(id)?.player.Alive();
+        this.getPlayerById(id)?.Alive();
     }
 
     addFire(fires: Fire[]) {
@@ -117,14 +125,14 @@ export class GameLevel extends Scene {
     }
 
     recMsg(userId: string, message: string) {
-        this.getPlayerById(userId)?.player.Say(message);
+        this.getPlayerById(userId)?.Say(message);
     }
 
     recMovePlayer(x: number, y: number, id: string) {
         const player = this.getPlayerById(id);
-        player?.player?.Move(x, y);
-        if (GameLevel.playerId === id && player?.player && !this.cameraSet) {
-            this.camera.startFollow(player.player);
+        player?.Move(x, y);
+        if (GameLevel.playerId === id && player && !this.cameraSet) {
+            this.camera.startFollow(player);
             this.cameraSet = true;
         }
     }
@@ -132,8 +140,8 @@ export class GameLevel extends Scene {
     nameChanged(newName: string, id: string) {
         const player = this.getPlayerById(id);
         if (player) {
-            player.player.name = newName;
-            player.player.textName.setText(newName);
+            player.name = newName;
+            player.textName.setText(newName);
         }
     }
 
@@ -159,28 +167,22 @@ export class GameLevel extends Scene {
     }
 
     setPlayers() {
+        console.log("SetPlayers GameLevel");
         new Promise((resolve) => resolve(PlayerManager.DestroySprites()))
             .then(() => PlayerManager.players.forEach(p => {
-                p.player = new Player(p.id, p.name, p.posX, p.posY, this, p.skin);
+                this.players.push(new Player(p.id, p.name, p.posX, p.posY, this, p.skin));
             }));
     }
 
-    playerDisconnected(id: string) {
-        const player = this.getPlayerById(id);
-        if (player) {
-            player.player.textName.destroy();
-            player.player.sprite.destroy();
-            PlayerManager.players = PlayerManager.players.filter(p => p.id !== id);
-        }
-    }
-
     preload() {
-        console.log("Preload GameLevel");
+        this.players = [];
+        console.log("Preload GameLevel", this.players);
         this.game.scene.scenes.forEach(s => s !== this && s.scene.stop());
         Connection.gameLevel = this;
         this.cameraSet = false;
         this.setPlayers();
         this.setMap();
+        PlayerManager.register(this);
     }
 
     create() {
