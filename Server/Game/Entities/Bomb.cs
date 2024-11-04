@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.SignalR;
+using Server.Game.Interface;
 
 namespace Server.Game.Entities;
 
@@ -7,6 +8,7 @@ public class Bomb : EntityBase
     private static readonly object Locker = new();
     public bool Touched { get; set; } = true;
     public Player Owner { get; }
+    private const int FireSize = 4;
 
     public Bomb(double x, double y, Player owner)
     {
@@ -17,22 +19,23 @@ public class Bomb : EntityBase
         Destructible = true;
         Height = Width = 36;
         Collision = true;
+        PlantBombAsync();
 
-        new Task(() =>
+    }
+    
+    private async void PlantBombAsync()
+    {
+        try
         {
-            try
-            {
-                Console.WriteLine($"PLANT BOMB {Id}");
-                Thread.Sleep(2000);
-                Console.WriteLine($"Explode BOMB {Id}");
-                Explode();
-            }
-            catch(Exception e)
-            {
-                Console.WriteLine($"nie udalo sie splantowac paki\n {e.Message}");
-            }
-        }).Start();
-
+            Console.WriteLine($"PLANT BOMB {Id}");
+            await Task.Delay(2000);  // Initial delay for bomb planting
+            Console.WriteLine($"Explode BOMB {Id}");
+            await ExplodeAsync();
+        }
+        catch (Exception e)
+        {
+            // Handle exception
+        }
     }
 
     private async Task SendToClients(List<Fire> fires)
@@ -41,86 +44,93 @@ public class Bomb : EntityBase
          await Game.GetHubGameService()?.HubContext.Clients.All.SendAsync("BombExplode", new BombModel(this))!;
     }
 
-    private static List<Fire> Calc(List<Fire> fires)
+    private static async Task<List<Fire>> CalcAsync(List<Fire> fires)
     {
         var fireList = new List<Fire>();
+        var entities = Game.GetEntities().Where(y => y.Destructible).ToArray();
 
-        foreach (var f in fires)
+        foreach (var fire in fires)
         {
-            var stop = false;
-            var coll = Game.GetEntities().Where(y => y.Destructible).ToArray();
-            foreach (var e in coll)
-                if (e is { Destroyed: false } && e.CheckCollision(f))
-                {
-                    switch (e)
-                    {
-                        case Bomb bomb:
-                            Console.WriteLine($"Destroy BOMB: {e.PosX} {e.PosY};  fire: {f.PosX}  {f.PosY}");
-                            bomb.Explode();
-                            break;
-                        case Wall:
-                            Console.WriteLine($"Destroy block: {e.PosX} {e.PosY};  fire: {f.PosX}  {f.PosY}");
-                            e.Destroyed = true;
-                            Game.CreateBonus(e);
-                            break;
-                        case Bonus:
-                            Console.WriteLine($"Destroy bonus: {e.PosX} {e.PosY};  fire: {f.PosX}  {f.PosY}");
-                            e.Destroyed = true;
-                            break;
-                        case Player player:
-                        {
-                            Console.WriteLine($"Hit player {e.Id}  {player.Name} with {player.LifeAmount()} lives");
-                            player.TakeLife();
-                            break;
-                        }
-                    }
+            bool stop = false;
 
+            foreach (var entity in entities)
+            {
+                if (entity is { Destroyed: false } && entity.CheckCollision(fire))
+                {
+                    await HandleEntityDestructionAsync(entity, fire);
                     stop = true;
                 }
-            fireList.Add(f);
+            }
+
+            fireList.Add(fire);
             if (stop)
             {
-                return fireList;
+                break;
             }
         }
 
         return fireList;
     }
+    
+    private static async Task HandleEntityDestructionAsync(IEntity entity, Fire fire)
+    {
+        switch (entity)
+        {
+            case Bomb bomb:
+                Console.WriteLine($"Destroy BOMB: {entity.PosX} {entity.PosY}; fire: {fire.PosX} {fire.PosY}");
+                await Task.Delay(2000);  // Asynchronous delay before exploding the bomb
+                await bomb.ExplodeAsync();
+                break;
+            case Wall:
+                Console.WriteLine($"Destroy block: {entity.PosX} {entity.PosY}; fire: {fire.PosX} {fire.PosY}");
+                entity.Destroyed = true;
+                Game.CreateBonus(entity);
+                break;
+            case Bonus:
+                Console.WriteLine($"Destroy bonus: {entity.PosX} {entity.PosY}; fire: {fire.PosX} {fire.PosY}");
+                entity.Destroyed = true;
+                break;
+            case Player player:
+                Console.WriteLine($"Hit player {entity.Id} {player.Name} with {player.LifeAmount()} lives");
+                player.TakeLife();
+                break;
+        }
+    }
 
-    private void Explode()
+    private async Task ExplodeAsync()
     {
         if (!Destroyed)
         {
             Destroyed = true;
-            List<Fire> fires1 = new List<Fire>();
-            List<Fire> fires2 = new List<Fire>();
-            List<Fire> fires3 = new List<Fire>();
-            List<Fire> fires4 = new List<Fire>();
+            
+                List<Fire> fires1 = CreateFireList(PosX, PosY, 1, 0);
+                List<Fire> fires2 = CreateFireList(PosX, PosY, 0, 1);
+                List<Fire> fires3 = CreateFireList(PosX, PosY, -1, 0);
+                List<Fire> fires4 = CreateFireList(PosX, PosY, 0, -1);
 
-            lock (Locker)
-            {
+                var fireList = await CalcAsync(fires1);
+                fireList.AddRange(await CalcAsync(fires2));
+                fireList.AddRange(await CalcAsync(fires3));
+                fireList.AddRange(await CalcAsync(fires4));
 
-                const int size = 4;
-
-                for (var i = 1; i <= size; i++)
-                    fires1.Add(new Fire() { PosX = PosX, PosY = PosY + (i * 32) });
-
-                for (var i = 1; i <= size; i++)
-                    fires2.Add(new Fire() { PosX = PosX + (i * 32), PosY = PosY });
-
-                for (var i = -1; i >= -size; i--)
-                    fires3.Add(new Fire() { PosX = PosX, PosY = PosY + (i * 32) });
-
-                for (var i = -1; i >= -size; i--)
-                    fires4.Add(new Fire() { PosX = PosX + (i * 32), PosY = PosY });
-            }
-
-            var f =  Calc(fires1);
-            f.AddRange( Calc(fires2));
-            f.AddRange( Calc(fires3));
-            f.AddRange( Calc(fires4));
-            SendToClients(f).Start();
+                await SendToClients(fireList);
         }
+    }
+    
+    private List<Fire> CreateFireList(double x, double y, int xMultiplier, int yMultiplier)
+    {
+        var fires = new List<Fire>();
+
+        for (var i = 1; i <= FireSize; i++)
+        {
+            fires.Add(new Fire() 
+            { 
+                PosX = x + (i * 32 * xMultiplier), 
+                PosY = y + (i * 32 * yMultiplier)
+            });
+        }
+
+        return fires;
     }
 }
 
