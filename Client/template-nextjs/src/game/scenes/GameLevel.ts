@@ -10,9 +10,18 @@ import { Bonus } from '../Player/Bonus';
 import { BonusModel } from '../Player/BonusModel';
 import { BombModel } from '../Player/BombModel';
 import { Bomb } from '../Player/Bomb';
+import { Monster } from '../Player/Monster';
 
 
 export class GameLevel extends Scene {
+    moveMonsters(monsters: [Monster]) {
+        monsters.map(m => {
+            const monster =  this.entities.find( e=> e.id === m.id) as Monster;
+            monster.Move(m.posX, m.posY);
+            }
+        );
+    }
+
     camera: Phaser.Cameras.Scene2D.Camera;
     background: Phaser.GameObjects.Image;
     connection: Connection;
@@ -35,6 +44,10 @@ export class GameLevel extends Scene {
         this.players = [];
     }
 
+    setMonsters(monsters: [Monster]) {
+        monsters.map(m => this.entities.push( new Monster(m.id, m.posX, m.posY, this)));
+    }
+    
     public RefreshPlayers(): void {
         console.log("RefreshPlayers GameLevel");
         //this.setPlayers();
@@ -194,6 +207,7 @@ export class GameLevel extends Scene {
         this.keyD = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
         this.keyW = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
         this.keySpace = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        Connection.connection.invoke("GetMonsters");
         EventBus.emit('current-scene-ready', this);
     }
 

@@ -17,21 +17,21 @@ public enum MoveDirection
 public static class Game
 {
     public static bool Live { get; set; }
-    public static List<IEntity> Entities = new();
-    public static HubGameService? HubGameService;
+    private static List<IEntity> _entities = [];
+    private static HubGameService? _hubGameService;
     public static readonly object LockObject = new ();
     public static IReadOnlyList<IEntity> GetEntities()
     {
         lock (LockObject)
         {
-            return Entities.ToArray();
+            return _entities.ToArray();
         }
     }
     private static void AddEntities(IEntity entity)
     {
         lock (LockObject)
         {
-            Entities.Add(entity);
+            _entities.Add(entity);
         }
     }
     
@@ -39,7 +39,7 @@ public static class Game
     {
         lock (LockObject)
         {
-            Entities.AddRange(entities);
+            _entities.AddRange(entities);
         }
     }
     
@@ -51,7 +51,7 @@ public static class Game
         new (){ Id = string.Empty, Live = false}
     ];
 
-    private static Player? MasterPlayer => Players.Any() ? Players[0] : null;
+    private static Player? MasterPlayer => Players.Length != 0 ? Players[0] : null;
     public static bool IsMasterPlayer(string id) => MasterPlayer is not null && MasterPlayer.Id == id;
     private static Wall[] GenerateMap()
     {
@@ -67,21 +67,30 @@ public static class Game
         lock (LockObject)
         {
             if (type is null)
-                Entities = [];
+                _entities = [];
             else
-                Entities.RemoveAll(e => e.GetType() == type);
+                _entities.RemoveAll(e => e.GetType() == type);
         }
     }
+    
+    private static List<(double X, double Y)> FindAllEmptyCoordinates() => MapHandler.GetEmptySpaces();
 
     public static Wall[] GetMap() => GetEntities().Where(e => e is Wall).Cast<Wall>().ToArray();
 
-    private static void GenerateMosters()
+    private static void GenerateMonsters()
     {
         RemoveEntities(typeof(Monster));
-        AddEntities(new Monster(){ PosX = 159, PosY = 200 });
+        var coords = FindAllEmptyCoordinates().ToArray();
+        Console.WriteLine($"Found {coords.Length} free spots");
+        Random rnd = new Random();
+        for (int i = 0; i < 5; i++)
+        {
+            int r = rnd.Next(coords.Length-1);
+            AddEntities(new Monster(){ PosX = coords[r].X, PosY = coords[r].Y });
+        }
     }
 
-    private static IEnumerable<Monster> GetMonsters() => GetEntities().Where( e => e is Monster).Cast<Monster>();
+    public static IEnumerable<Monster> GetMonsters() => GetEntities().Where( e => e is Monster).Cast<Monster>();
 
     public static void AddPlayer(string id)
     {
@@ -134,7 +143,7 @@ public static class Game
             player.Live = false;
             lock (LockObject)
             {
-                Entities.Remove(player);
+                _entities.Remove(player);
             }
         }
     }
@@ -170,11 +179,9 @@ public static class Game
     public static async Task RestartGame()
     {
         RemoveEntities(typeof(Wall));
-        GenerateMosters();
-
         var newMap = GenerateMap();
+        GenerateMonsters();
         var players = Players.Where(p => p.Live).ToArray();
-        var monsters = GetMonsters();
 
         for (var i = 0; i < players.Length; i++)
         {
@@ -203,10 +210,10 @@ public static class Game
             }
         }
 
-        if (HubGameService != null)
+        if (_hubGameService != null)
         {
-            await HubGameService.HubContext.Clients.All.SendAsync("Connected", players);
-            await HubGameService.HubContext.Clients.All.SendAsync("GetMap", newMap);
+            await _hubGameService.HubContext.Clients.All.SendAsync("Connected", players);
+            await _hubGameService.HubContext.Clients.All.SendAsync("GetMap", newMap);
         }
     }
 
@@ -218,6 +225,24 @@ public static class Game
         
         var bonus = new Bonus() { PosX = e.PosX, PosY = e.PosY, Destructible = true };
         AddEntities(bonus);
-        HubGameService?.HubContext.Clients.All.SendAsync("SetBonus", bonus);
+        _hubGameService?.HubContext.Clients.All.SendAsync("SetBonus", bonus);
+    }
+
+    public static void RemoveDestroyedEntities()
+    {
+        lock (LockObject)
+        {
+            _entities.RemoveAll(e => e.Destroyed);
+        }
+    }
+
+    public static void SetHubGameService(HubGameService hubGameService)
+    {
+        _hubGameService = hubGameService;
+    }
+
+    public static HubGameService? GetHubGameService()
+    {
+        return _hubGameService;
     }
 }

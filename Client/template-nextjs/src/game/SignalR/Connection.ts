@@ -7,6 +7,7 @@ import { PlayerModel } from "../Player/PlayerModel";
 import { BonusModel } from "../Player/BonusModel";
 import { MapGenerator } from "../scenes/MapGenerator";
 import { BombModel } from "../Player/BombModel";
+import { Monster } from "../Player/Monster";
 
 
 export class Connection {
@@ -57,6 +58,21 @@ export class Connection {
         connection.on("KillPlayer", Connection.handleKillPlayer);
         connection.on("ResurrectPlayer", Connection.handleResurrectPlayer);
         connection.on("BackToLobby", Connection.handleBackToLobby);
+        connection.on("GetMonsters", Connection.getMonsters);
+        connection.on("MoveMonsters", Connection.moveMonsters)
+    }
+
+    static moveMonsters(monsters: [Monster]) {
+        if (Connection.gameLevel !== undefined) {
+            Connection.gameLevel.moveMonsters(monsters);
+        }
+    }
+
+    static getMonsters(monsters: [Monster]) {
+        if (Connection.gameLevel !== undefined) {
+            console.log("SignalR getMonsters. ", monsters);
+            Connection.gameLevel.setMonsters(monsters);
+        }
     }
 
     private static handleReceiveMessage(user: string, message: string): void {

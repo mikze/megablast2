@@ -1,4 +1,5 @@
 
+using Microsoft.AspNetCore.SignalR;
 using Server.Game.Interface;
 
 namespace Server.Game.Entities;
@@ -12,7 +13,7 @@ public class Player : EntityBase
     public MoveDirection MoveDirection { get; set; }
     public bool Live { get; internal set; } = true;
     public int MaxBombs { get; set; } = 1;
-    public int Lives { get; set; } = 1;
+    private int Lives { get; set; } = 1;
     public string Skin { get; set; } = "playerSprite";
 
     public Player()
@@ -34,50 +35,61 @@ public class Player : EntityBase
 
     public void MovePlayer(MoveDirection moveDirection)
     {
-        if (!Dead && Game.Live)
+        if (Dead || !Game.Live) return;
+        var oldPosX = PosX;
+        var oldPosY = PosY;
+
+        switch (moveDirection)
         {
-            var oldPosX = PosX;
-            var oldPosY = PosY;
+            case MoveDirection.Right:
+                PosX += Speed;
+                break;
+            case MoveDirection.Left:
+                PosX -= Speed;
+                break;
+            case MoveDirection.Up:
+                PosY -= Speed;
+                break;
+            case MoveDirection.Down:
+                PosY += Speed;
+                break;
+        }
 
-            switch (moveDirection)
+        foreach (var entity in Game.GetEntities().Where(e => e != this && e.Collision))
+        {
+            if (entity.CheckCollision(this))
             {
-                case MoveDirection.Right:
-                    PosX += Speed;
-                    break;
-                case MoveDirection.Left:
-                    PosX -= Speed;
-                    break;
-                case MoveDirection.Up:
-                    PosY -= Speed;
-                    break;
-                case MoveDirection.Down:
-                    PosY += Speed;
-                    break;
+                if (entity is Bomb bomb && bomb.Owner == this)
+                    if(bomb.Touched)
+                        break;
+
+                PosX = oldPosX;
+                PosY = oldPosY;
+                break;
             }
 
-            foreach (var entity in Game.GetEntities().Where(e => e != this && e.Collision))
-            {
-                if (entity.CheckCollision(this))
-                {
-                    if (entity is Bomb bomb && bomb.Owner == this)
-                        if(bomb.Touched)
-                            break;
-
-                    PosX = oldPosX;
-                    PosY = oldPosY;
-                    break;
-                }
-
-                if (entity is not Bomb bomb1 || bomb1.Owner != this) continue;
-                bomb1.Touched = false;
-            }
+            if (entity is not Bomb bomb1 || bomb1.Owner != this) continue;
+            bomb1.Touched = false;
         }
     }
 
     internal Bomb? PlantBomb()
     {
-        if (Game.Entities.Where(e => e is Bomb).Count(e => (e as Bomb)?.Owner == this && !e.Destroyed) >=
+        if (Game.GetEntities().Where(e => e is Bomb).Count(e => (e as Bomb)?.Owner == this && !e.Destroyed) >=
             MaxBombs) return null;
         return !Dead ? Game.PlantBomb(PosX + 16, PosY + 16, this) : null;
     }
+
+    public void TakeLife(int amount = 1)
+    {
+        Lives -= amount;
+        if (LifeAmount() <= 0)
+        {
+            Console.WriteLine($"Killed player {Id}  {Name}");
+            Dead = true;
+            Game.GetHubGameService()?.HubContext.Clients.All.SendAsync("KillPlayer", Id);
+        }
+    }
+
+    public int LifeAmount() => Lives;
 }

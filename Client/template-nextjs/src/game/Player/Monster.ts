@@ -17,6 +17,14 @@ export class Monster
         this.posY = y;
         this.scene = scene;
 
-        this.sprite = scene.add.image(x + 8, y + 8, "Monster").setScale(0.2)     
+        this.sprite = scene.add.image(x + 8, y + 8, "monster")
+    }
+    
+    public Move(x:number, y:number)
+    {
+        this.posX = x;
+        this.posY = y;
+        this.sprite.x = x;
+        this.sprite.y = y;
     }
 }

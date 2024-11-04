@@ -37,8 +37,8 @@ public class Bomb : EntityBase
 
     private void SendToClients(List<Fire> fires)
     {
-         Game.HubGameService?.HubContext.Clients.All.SendAsync("Fires", fires.ToArray());
-         Game.HubGameService?.HubContext.Clients.All.SendAsync("BombExplode", new BombModel(this));
+         Game.GetHubGameService()?.HubContext.Clients.All.SendAsync("Fires", fires.ToArray());
+         Game.GetHubGameService()?.HubContext.Clients.All.SendAsync("BombExplode", new BombModel(this));
     }
 
     private static List<Fire> Calc(List<Fire> fires)
@@ -69,15 +69,8 @@ public class Bomb : EntityBase
                             break;
                         case Player player:
                         {
-                            Console.WriteLine($"Hit player {e.Id}  {player.Name} with {player.Lives} lives");
-                            player.Lives--;
-                            if (player.Lives <= 0)
-                            {
-                                Console.WriteLine($"Killed player {e.Id}  {player.Name}");
-                                player.Dead = true;
-                                Game.HubGameService?.HubContext.Clients.All.SendAsync("KillPlayer", e.Id);
-                            }
-
+                            Console.WriteLine($"Hit player {e.Id}  {player.Name} with {player.LifeAmount()} lives");
+                            player.TakeLife();
                             break;
                         }
                     }

@@ -3,7 +3,7 @@ using Server.Game;
 
 public class ChatHub : Hub
 {
-    private static readonly List<string> clients = new List<string>();
+    private static readonly List<string> clients = [];
     public async Task SendMessage(string user, string message)
     {
         var player = Game.Players.FirstOrDefault(p => p.Id == Context.ConnectionId);
@@ -38,6 +38,12 @@ public class ChatHub : Hub
             Clients.All.SendAsync("BombPlanted", new BombModel(bomb));
     }
 
+    public void GetMonsters()
+    {
+        Console.WriteLine("Getting Monsters");
+        var monsters = Game.GetMonsters();
+        Clients.Caller.SendAsync("GetMonsters", monsters);
+    }
     public void ChangeName(string newName)
     {
         var player = Game.Players.FirstOrDefault(p => p.Id == Context.ConnectionId);

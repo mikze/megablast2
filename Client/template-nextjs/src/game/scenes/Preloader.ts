@@ -85,6 +85,13 @@ export class Preloader extends Scene {
       }
     );
 
+      this.load.spritesheet("monster", "monster.png",
+          {
+              frameHeight: 63,
+              frameWidth: 63
+          }
+      );
+
     this.loadTiledSheet("otsp_tiles_01");
     this.loadTiledSheet("otsp_town_01");
   }

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Server.Game.Entities;
 
 namespace Server.Map;
@@ -7,9 +8,12 @@ public static class MapHandler
     private static int[][]? _map;
     private static List<Wall>? _walls = [];
 
+    private static List<(double X, double Y)> _emptySpaces = [];
+
     public static Wall[]? GenerateMap()
     {
         _walls = new List<Wall>();
+        _emptySpaces = new List<(double X, double Y)>();
 
         _map = [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
             [1,0,0,4,0,4,4,4,4,0,4,0,4,4,0,0,1],
@@ -45,6 +49,11 @@ public static class MapHandler
                     };
                     _walls?.Add(wall);
                 }
+                else
+                {
+                    _emptySpaces.Add((posX ,posY));
+                    
+                }
                 posX += 50;
             }
             posY += 50;
@@ -53,4 +62,7 @@ public static class MapHandler
 
         return _walls?.ToArray();
     }
+
+    public static List<(double X, double Y)> GetEmptySpaces() => _emptySpaces;
+    
 }

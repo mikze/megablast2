@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using Server.Game;
+using Server.Game.Entities;
 
 namespace Server.Services;
 
@@ -10,7 +11,7 @@ public class HubGameService : BackgroundService
     public HubGameService(IHubContext<ChatHub> hubContext)
     {
         HubContext = hubContext;
-        Game.Game.HubGameService = this;
+        Game.Game.SetHubGameService(this);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -34,12 +35,14 @@ public class HubGameService : BackgroundService
                 RemoveDestroyedEntities();
 
                 MoveLivePlayers();
+                MoveLiveMonster();
 
                 Thread.Sleep(10);
 
                 if (Game.Game.Live)
                 {
                     SendPlayerLocations();
+                    SendMonstersLocations();
                 }
             }
             catch (Exception ex)
@@ -58,10 +61,22 @@ public class HubGameService : BackgroundService
 
         lock (Game.Game.LockObject)
         {
-            Game.Game.Entities.RemoveAll(e => e.Destroyed);
+            Game.Game.RemoveDestroyedEntities();
         }
     }
-
+    
+    private void SendMonstersLocations()
+    {
+        var monsters = Game.Game.GetMonsters().Where(p => p is { Destroyed: false });
+        HubContext.Clients.All.SendAsync("MoveMonsters", monsters);
+    }
+    
+    private void MoveLiveMonster()
+    {
+        foreach (Monster monster in Game.Game.GetMonsters().Where(p => p is { Destroyed: false }))
+            monster.Move();
+    }
+    
     private void MoveLivePlayers()
     {
         foreach (var player in Game.Game.Players.Where(p =>
