@@ -35,10 +35,10 @@ public class Bomb : EntityBase
 
     }
 
-    private void SendToClients(List<Fire> fires)
+    private async Task SendToClients(List<Fire> fires)
     {
-         Game.GetHubGameService()?.HubContext.Clients.All.SendAsync("Fires", fires.ToArray());
-         Game.GetHubGameService()?.HubContext.Clients.All.SendAsync("BombExplode", new BombModel(this));
+         await Game.GetHubGameService()?.HubContext.Clients.All.SendAsync("Fires", fires.ToArray())!;
+         await Game.GetHubGameService()?.HubContext.Clients.All.SendAsync("BombExplode", new BombModel(this))!;
     }
 
     private static List<Fire> Calc(List<Fire> fires)
@@ -119,7 +119,7 @@ public class Bomb : EntityBase
             f.AddRange( Calc(fires2));
             f.AddRange( Calc(fires3));
             f.AddRange( Calc(fires4));
-            SendToClients(f);
+            SendToClients(f).Start();
         }
     }
 }

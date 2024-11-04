@@ -30,12 +30,12 @@ public class ChatHub : Hub
             player.MoveDirection = (MoveDirection)moveDirection;
     }
 
-    public void PlantBomb()
+    public async void PlantBomb()
     {
         var player = Game.Players.FirstOrDefault(p => p.Id == Context.ConnectionId);
         var bomb = player?.PlantBomb();
         if (bomb != null)
-            Clients.All.SendAsync("BombPlanted", new BombModel(bomb));
+            await Clients.All.SendAsync("BombPlanted", new BombModel(bomb));
     }
 
     public void GetMonsters()
