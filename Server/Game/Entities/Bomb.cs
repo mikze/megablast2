@@ -78,7 +78,6 @@ public class Bomb : EntityBase
         {
             case Bomb bomb:
                 Console.WriteLine($"Destroy BOMB: {entity.PosX} {entity.PosY}; fire: {fire.PosX} {fire.PosY}");
-                await Task.Delay(2000);  // Asynchronous delay before exploding the bomb
                 await bomb.ExplodeAsync();
                 break;
             case Wall:
