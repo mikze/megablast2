@@ -83,7 +83,7 @@ public static class Game
         var coords = FindAllEmptyCoordinates().ToArray();
         Console.WriteLine($"Found {coords.Length} free spots");
         Random rnd = new Random();
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 6; i++)
         {
             int r = rnd.Next(coords.Length-1);
             AddEntities(new Monster(){ PosX = coords[r].X, PosY = coords[r].Y });

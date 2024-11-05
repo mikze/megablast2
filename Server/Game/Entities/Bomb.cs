@@ -5,7 +5,6 @@ namespace Server.Game.Entities;
 
 public class Bomb : EntityBase
 {
-    private static readonly object Locker = new();
     public bool Touched { get; set; } = true;
     public Player Owner { get; }
     private const int FireSize = 4;
@@ -51,15 +50,13 @@ public class Bomb : EntityBase
 
         foreach (var fire in fires)
         {
-            bool stop = false;
+            var stop = false;
 
             foreach (var entity in entities)
             {
-                if (entity is { Destroyed: false } && entity.CheckCollision(fire))
-                {
-                    await HandleEntityDestructionAsync(entity, fire);
-                    stop = true;
-                }
+                if (entity is not { Destroyed: false } || !entity.CheckCollision(fire)) continue;
+                await HandleEntityDestructionAsync(entity, fire);
+                stop = true;
             }
 
             fireList.Add(fire);
@@ -76,6 +73,10 @@ public class Bomb : EntityBase
     {
         switch (entity)
         {
+            case Monster monster:
+                Console.WriteLine($"Destroy monster: {entity.PosX} {entity.PosY}; fire: {fire.PosX} {fire.PosY}");
+                monster.Destroyed = true;
+                break;
             case Bomb bomb:
                 Console.WriteLine($"Destroy BOMB: {entity.PosX} {entity.PosY}; fire: {fire.PosX} {fire.PosY}");
                 await bomb.ExplodeAsync();

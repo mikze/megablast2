@@ -27,7 +27,7 @@ public class Bonus : EntityBase
         {
             case 3:
                 Console.WriteLine($"Collided with bonus 3. Add live bonus to player {player.Id}, {player.LifeAmount()} ");
-                player.TakeLife(-1);
+                player.AddLife();
                 break;
             case 2:
                 player.Speed += 0.1;

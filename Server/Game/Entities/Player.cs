@@ -90,6 +90,11 @@ public class Player : EntityBase
             Game.GetHubGameService()?.HubContext.Clients.All.SendAsync("KillPlayer", Id);
         }
     }
+    
+    public void AddLife(int amount = 1)
+    {
+        Lives += amount;
+    }
 
     public int LifeAmount() => Lives;
 }

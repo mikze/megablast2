@@ -13,7 +13,7 @@ public class Monster : EntityBase
         Destructible = true;
     }
 
-    private const double MovementIncrement = 0.5;
+    private const double MovementIncrement = 1.3;
 
     public void Move()
     {
