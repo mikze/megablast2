@@ -7,7 +7,7 @@ public class Bomb : EntityBase
 {
     public bool Touched { get; set; } = true;
     public Player Owner { get; }
-    private const int FireSize = 4;
+    private int FireSize => Owner.GetFireSize();
 
     public Bomb(double x, double y, Player owner)
     {
@@ -33,7 +33,7 @@ public class Bomb : EntityBase
         }
         catch (Exception e)
         {
-            // Handle exception
+            Console.WriteLine($"Could not plant bomb, {e.Message}");
         }
     }
 

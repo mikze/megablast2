@@ -65,9 +65,7 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(function PhaserGame
             
             } else if (ref)
             {
-
                 ref.current = { game: game.current, scene: scene_instance };
-
             }
             
         });
@@ -82,5 +80,4 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(function PhaserGame
     return (
         <div id="game-container"></div>
     );
-
 });

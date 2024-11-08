@@ -27,7 +27,6 @@ export class PlayerManager {
     static players: PlayerModel[];
 
     static UpdatePlayers(players: PlayerModel[]) {
-        console.log("RefreshPlayers")
         new Promise((r, c) => r(PlayerManager.setPlayers(players))).then(() => PlayerManager.emit());
     }
     static setPlayers(players: PlayerModel[])
@@ -37,8 +36,7 @@ export class PlayerManager {
         {
             r(PlayerManager.DestroySprites());
         })
-        .then(() => { 
-            console.log("Restart players ", players)
+        .then(() => {
             PlayerManager.players = players;
         });
         else

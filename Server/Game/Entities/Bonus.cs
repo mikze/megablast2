@@ -25,6 +25,9 @@ public class Bonus : EntityBase
         
         switch (BonusType)
         {
+            case 4:
+                player.IncreaseFireSize();
+                break;
             case 3:
                 Console.WriteLine($"Collided with bonus 3. Add live bonus to player {player.Id}, {player.LifeAmount()} ");
                 player.AddLife();

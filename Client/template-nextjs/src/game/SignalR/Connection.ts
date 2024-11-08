@@ -8,17 +8,16 @@ import { BonusModel } from "../Player/BonusModel";
 import { MapGenerator } from "../scenes/MapGenerator";
 import { BombModel } from "../Player/BombModel";
 import { Monster } from "../Player/Monster";
+import { Lobby } from "../scenes/Lobby";
 
 
 export class Connection {
     static connection: HubConnection;
     static gameLevel: GameLevel;
-
+    static lobby: Lobby;
     private static URL = "http://192.168.100.100:5166/Chat";
-    private static LOG_MESSAGE_CONNECTION = "Create connection";
 
     static CreateConnection() {
-        console.log(Connection.LOG_MESSAGE_CONNECTION);
         Connection.connection = new HubConnectionBuilder()
             .withUrl(Connection.URL)
             .configureLogging(LogLevel.Information)
@@ -70,7 +69,6 @@ export class Connection {
 
     static getMonsters(monsters: [Monster]) {
         if (Connection.gameLevel !== undefined) {
-            console.log("SignalR getMonsters. ", monsters);
             Connection.gameLevel.setMonsters(monsters);
         }
     }
@@ -78,6 +76,8 @@ export class Connection {
     private static handleReceiveMessage(user: string, message: string): void {
         if (Connection.gameLevel !== undefined)
             Connection.gameLevel.recMsg(user, message);
+        if (Connection.lobby !== undefined)
+            Connection.lobby.recMsg(user, message);
     }
 
     private static handleMovePlayer(obj: [PlayerModel]): void {

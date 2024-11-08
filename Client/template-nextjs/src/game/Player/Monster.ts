@@ -11,12 +11,10 @@ export class Monster
 
     constructor(id : string ,x : number, y : number, scene: Scene) 
     {
-        console.log("CREATE MONSTER",x, y)
         this.id = id;
         this.posX = x;
         this.posY = y;
         this.scene = scene;
-
         this.sprite = scene.add.image(x + 8, y + 8, "monster")
     }
     

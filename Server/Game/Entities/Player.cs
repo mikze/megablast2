@@ -15,6 +15,7 @@ public class Player : EntityBase
     public int MaxBombs { get; set; } = 1;
     private int Lives { get; set; } = 1;
     public string Skin { get; set; } = "playerSprite";
+    private int _fireSize = 3;
 
     public Player()
     {
@@ -83,12 +84,10 @@ public class Player : EntityBase
     public void TakeLife(int amount = 1)
     {
         Lives -= amount;
-        if (LifeAmount() <= 0)
-        {
-            Console.WriteLine($"Killed player {Id}  {Name}");
-            Dead = true;
-            Game.GetHubGameService()?.HubContext.Clients.All.SendAsync("KillPlayer", Id);
-        }
+        if (LifeAmount() > 0) return;
+        Console.WriteLine($"Killed player {Id}  {Name}");
+        Dead = true;
+        Game.GetHubGameService()?.HubContext.Clients.All.SendAsync("KillPlayer", Id);
     }
     
     public void AddLife(int amount = 1)
@@ -97,4 +96,9 @@ public class Player : EntityBase
     }
 
     public int LifeAmount() => Lives;
+    
+    public int GetFireSize() => _fireSize;
+    public void IncreaseFireSize() => _fireSize += 1;
+    public void DecreaseFireSize() => _fireSize -= 1;
+    
 }

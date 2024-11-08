@@ -37,7 +37,6 @@ export class GameLevel extends Scene {
     players: Player[];
 
     constructor() {
-        console.log("GameLevel constructor");
         super('GameLevel');
         this.entities = [];
         this.bonuses = [];
@@ -49,8 +48,6 @@ export class GameLevel extends Scene {
     }
     
     public RefreshPlayers(): void {
-        console.log("RefreshPlayers GameLevel");
-        //this.setPlayers();
     }
     
     private invokeConnection(action: string, ...args: any[]) {
@@ -180,7 +177,6 @@ export class GameLevel extends Scene {
     }
 
     setPlayers() {
-        console.log("SetPlayers GameLevel");
         new Promise((resolve) => resolve(PlayerManager.DestroySprites()))
             .then(() => PlayerManager.players.forEach(p => {
                 this.players.push(new Player(p.id, p.name, p.posX, p.posY, this, p.skin));
@@ -189,7 +185,6 @@ export class GameLevel extends Scene {
 
     preload() {
         this.players = [];
-        console.log("Preload GameLevel", this.players);
         this.game.scene.scenes.forEach(s => s !== this && s.scene.stop());
         Connection.gameLevel = this;
         this.cameraSet = false;
@@ -199,7 +194,6 @@ export class GameLevel extends Scene {
     }
 
     create() {
-        console.log("Create GameLevel");
         this.camera = this.cameras.main;
         this.camera.setBackgroundColor("rgb(55, 87, 248)");
         this.keyA = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);

@@ -13,6 +13,7 @@ const TEXT_STYLE = {
 };
 
 export class Lobby extends Scene {
+
     private static loaded: boolean = false;
     private camera!: Phaser.Cameras.Scene2D.Camera;
     private background!: Phaser.GameObjects.Image;
@@ -27,7 +28,7 @@ export class Lobby extends Scene {
             .then(() => this.setPlayerNames());
     }
 
-    private registerStart(): void {
+    private async registerStart() {
         if (!Lobby.loaded) {
             Lobby.loaded = true;
             Connection.connection.on("Start", () => { this.scene.start('GameLevel'); });
@@ -35,9 +36,7 @@ export class Lobby extends Scene {
     }
 
     private async initializeConnection(): Promise<void> {
-        console.log("Stage 2: Register Start");
         await this.registerStart();
-        console.log("Stage 3: Restart lobby");
         PlayerManager.register(this);
         await Connection.connection.invoke("RestartGame");
         this.setPlayerNames();
@@ -58,6 +57,10 @@ export class Lobby extends Scene {
         }
     }
 
+    recMsg(user: string, message: string) {
+        throw new Error("Method not implemented.");
+    }
+    
     private addPlayerText(name: string, x: number, y: number): void {
         this.gameText.push(this.add.text(x, y, name, TEXT_STYLE)
             .setOrigin(0.5).setDepth(100));
@@ -76,24 +79,20 @@ export class Lobby extends Scene {
         
         rightButton.on('pointerdown', () => {
             player.skinUp();
-            console.log(player.skin);
             Connection.connection.invoke("ChangeSkin", "playerSprite2");
         });
-
-        leftButton.on('pointerover', () => { console.log('Left button hover', player); });
+        
         leftButton.on('pointerdown', () => {
             player.skinDown();
-            console.log(player.skin);
             Connection.connection.invoke("ChangeSkin", "playerSprite");
         });
     }
 
     create(): void {
-        console.log('Lobby start');
         this.initializeConnection();
         this.camera = this.cameras.main;
         this.camera.setBackgroundColor(0x00ff00);
-        this.background = this.add.image(512, 384, 'background').setAlpha(0.5);
+        this.background = this.add.image(300, 384, 'background').setAlpha(0.5);
         EventBus.emit('current-scene-ready', this);
     }
 
@@ -102,7 +101,6 @@ export class Lobby extends Scene {
     }
 
     changeScene(): void {
-        console.log("Connection start");
         Connection.connection.invoke("Start");
     }
 }
