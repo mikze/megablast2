@@ -2,6 +2,8 @@ import { EventBus } from '../EventBus';
 import { Scene } from 'phaser';
 import { Connection } from '../SignalR/Connection';
 import { PlayerManager } from './PlayerManager';
+import { receiveMessage } from '../../chatReciever'
+import  configureStore  from '../../Store'
 
 const TEXT_STYLE = {
     fontFamily: 'Arial Black',
@@ -40,6 +42,7 @@ export class Lobby extends Scene {
         PlayerManager.register(this);
         await Connection.connection.invoke("RestartGame");
         this.setPlayerNames();
+        Connection.lobby = this;
         return Promise.resolve();
     }
 
@@ -58,7 +61,13 @@ export class Lobby extends Scene {
     }
 
     recMsg(user: string, message: string) {
-        throw new Error("Method not implemented.");
+        console.log(user + ": " + message);
+        configureStore.dispatch(receiveMessage({message: message, username: user}));
+    }
+
+    sendMsg(user: string, message: string) {
+        console.log(user + ": " + message);
+        Connection.InvokeConnection("SendMessage", user, message);
     }
     
     private addPlayerText(name: string, x: number, y: number): void {
@@ -92,7 +101,8 @@ export class Lobby extends Scene {
         this.initializeConnection();
         this.camera = this.cameras.main;
         this.camera.setBackgroundColor(0x00ff00);
-        this.background = this.add.image(300, 384, 'background').setAlpha(0.5);
+        this.background = this.add.image(300, 384, 'background');
+        //this.add.sprite(100, 140 + dist, player.skin).setScale(1);//backgroundtile
         EventBus.emit('current-scene-ready', this);
     }
 

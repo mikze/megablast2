@@ -2,7 +2,7 @@ import { PlayerModel } from "../Player/PlayerModel";
 
 export class PlayerManager {
     static SkinChanged(newSkinName: string, id: string) {
-        new Promise((r, c) => r(PlayerManager.changeSkin(newSkinName, id))).then(() => PlayerManager.emit());
+        new Promise((r) => r(PlayerManager.changeSkin(newSkinName, id))).then(() => PlayerManager.emit());
     }
     static changeSkin(newSkinName: string, id: string) {
         console.log("skin changed", newSkinName, id);
@@ -21,18 +21,18 @@ export class PlayerManager {
     }
 
     static NameChanged(newName: string, id: string) {     
-        new Promise((r, c) => r(PlayerManager.changeName(newName, id))).then(() => PlayerManager.emit());
+        new Promise((r) => r(PlayerManager.changeName(newName, id))).then(() => PlayerManager.emit());
     }
 
     static players: PlayerModel[];
 
     static UpdatePlayers(players: PlayerModel[]) {
-        new Promise((r, c) => r(PlayerManager.setPlayers(players))).then(() => PlayerManager.emit());
+        new Promise((r) => r(PlayerManager.setPlayers(players))).then(() => PlayerManager.emit());
     }
     static setPlayers(players: PlayerModel[])
     {
         if(PlayerManager.players !== undefined)
-            new Promise((r,c) => 
+            new Promise((r) => 
         {
             r(PlayerManager.DestroySprites());
         })

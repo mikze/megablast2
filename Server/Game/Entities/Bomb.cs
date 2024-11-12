@@ -27,7 +27,7 @@ public class Bomb : EntityBase
         try
         {
             Console.WriteLine($"PLANT BOMB {Id}");
-            await Task.Delay(2000);  // Initial delay for bomb planting
+            await Task.Delay(Owner.BombDelay);  // Initial delay for bomb planting
             Console.WriteLine($"Explode BOMB {Id}");
             await ExplodeAsync();
         }

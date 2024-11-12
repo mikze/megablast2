@@ -27,6 +27,18 @@ export class Connection {
         });
     }
 
+    static emitMessage()
+    {
+        Connection.subscribers.map(s => s.RecMsg())
+    }
+
+    static registerMessageConsumer(scene :any)
+    {
+        Connection.subscribers.push(scene);
+    }
+
+    static subscribers: any[] = new Array<any>
+
     private static async start(connection: HubConnection) {
         try {
             await connection.start();
@@ -59,6 +71,10 @@ export class Connection {
         connection.on("BackToLobby", Connection.handleBackToLobby);
         connection.on("GetMonsters", Connection.getMonsters);
         connection.on("MoveMonsters", Connection.moveMonsters)
+    }
+
+    static InvokeConnection(action: string, ...args: any[]) {
+        Connection.connection.invoke(action, ...args);
     }
 
     static moveMonsters(monsters: [Monster]) {

@@ -14,12 +14,34 @@ public enum MoveDirection
     Down,
     None
 }
+public class GameConfig
+{
+    public int MonsterAmount { get; set; }
+    public double MonsterSpeed { get; set; }
+    public int BombDelay { get; set; }
+}
 public static class Game
 {
+    
     public static bool Live { get; set; }
     private static List<IEntity> _entities = [];
     private static HubGameService? _hubGameService;
     public static readonly object LockObject = new ();
+    private static int MonsterAmount { get; set; } = 5;
+    private static double MonsterSpeed { get; set; } = 1.3;
+    public static int BombDelay { get; set; } = 2000;
+
+    public static GameConfig GetConfig()
+    {
+        return new GameConfig { MonsterAmount = MonsterAmount, MonsterSpeed = MonsterSpeed, BombDelay = BombDelay };
+    }
+    
+    public static void SetGameConfig(GameConfig config)
+    {
+        MonsterAmount = config.MonsterAmount;
+        MonsterSpeed = config.MonsterSpeed;
+        BombDelay = config.BombDelay;
+    }
     public static IReadOnlyList<IEntity> GetEntities()
     {
         lock (LockObject)

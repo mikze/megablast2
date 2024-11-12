@@ -7,9 +7,11 @@ public class ChatHub : Hub
     public async Task SendMessage(string user, string message)
     {
         var player = Game.Players.FirstOrDefault(p => p.Id == Context.ConnectionId);
+        Console.WriteLine($"Received {user}: {message}");
         if (player != null)
         {
-            await Clients.All.SendAsync("ReceiveMessage", Context.ConnectionId, message);
+            Console.WriteLine("Sending");
+            await Clients.All.SendAsync("ReceiveMessage", player.Name, message);
         }
     }
     public async Task RestartGame()
@@ -21,6 +23,11 @@ public class ChatHub : Hub
 
             await Game.RestartGame();
         }
+    }
+
+    public async void GetConfig()
+    {
+        await Clients.Caller.SendAsync("ServerIsFull", new { a = 1 });
     }
     
     public void MovePlayer(int moveDirection)

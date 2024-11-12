@@ -3,8 +3,12 @@ import { IRefPhaserGame, PhaserGame } from './game/PhaserGame';
 import { GameLevel } from './game/scenes/GameLevel';
 import { Preloader } from './game/scenes/Preloader';
 import { Lobby } from './game/scenes/Lobby';
+import store from './Store'
+import { Provider } from 'react-redux'
 import ChangeName from './ChangeName';
 import Chat from './Chat';
+import output from '../public/assets/output.jpg';
+import output2 from '../public/assets/output2.jpg';
 
 function App() {
     //  References to the PhaserGame component (game and scene are exposed)
@@ -33,7 +37,7 @@ function App() {
         if (phaserRef.current) {
             const scene = phaserRef.current.scene as GameLevel;
 
-            if (scene && scene.scene.key === 'GameLevel') {
+            if (scene && scene.scene.key === 'GameLevel' || scene.scene.key === 'Lobby') {
                 scene.sendMsg("user x", message);
             }
         }
@@ -63,32 +67,41 @@ function App() {
 
     const ButtonGroup = () => (
         <div>
-            {isVisibleStart && (<div>
-                <button className="button" onClick={changeScene}>Start</button>
-            </div>)}
+            
             <div>
-               <ChangeName changeName={changeName}/>
+                {!isVisibleBackToLobby && <ChangeName changeName={changeName}/>}
             </div>
         </div>
     );
 
     return (
-        <div id="app">
-            <div className="container">
-                <div className="item2">
-                    <ButtonGroup />
-                </div>
-                    <PhaserGame ref={phaserRef} currentActiveScene={currentScene}/>
-            </div>
-            <div>
-                <Chat sendMsg={sendMsg}/>
-                {isVisibleBackToLobby && (
-                    <div>
-                        <button className="button" onClick={backToLobby}>Back to lobby</button>
+        <Provider store={store}>
+            <div id="app">
+                <div id="borderimg">
+                    <div className="container">
+                        <div className="item2">
+                            <ButtonGroup/>
+                        </div>
+                        <div>
+                            <PhaserGame ref={phaserRef} currentActiveScene={currentScene}/>
+                        </div>
+                        <div>
+                            <Chat sendMsg={sendMsg}/>
+                        </div>
+                        {isVisibleBackToLobby && (
+                            <div>
+                                <button className="button" onClick={backToLobby}>Back to lobby</button>
+                            </div>
+                        )}
+                        {isVisibleStart && (<div>
+                            <button className="button" onClick={changeScene}>Start</button>
+                        </div>)}
                     </div>
-                )}
+
+                </div>
+
             </div>
-        </div>
+        </Provider>
     )
 }
 

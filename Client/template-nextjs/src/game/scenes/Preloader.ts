@@ -36,6 +36,9 @@ export class Preloader extends Scene {
     this.load.image('logo', 'logo.png');
     this.load.image('star', 'star.png');
     this.load.image('1up', '1up.png');
+    this.load.image("borders", "borders.png");
+    this.load.image("backgroundtile", "backgroundtile.png");
+      
     this.load.spritesheet("playerSprite", "player.png",
       {
         frameHeight: 63,
@@ -71,12 +74,12 @@ export class Preloader extends Scene {
       }
     );
 
-    this.load.spritesheet("fire", "fire.png",
-      {
-        frameHeight: 63,
-        frameWidth: 63
-      }
-    );
+      this.load.spritesheet("fire", "fire.png",
+          {
+              frameHeight: 63,
+              frameWidth: 63
+          }
+      );
 
     this.load.spritesheet("dead", "dead.png",
       {
