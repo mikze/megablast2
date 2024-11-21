@@ -46,6 +46,13 @@ export class Preloader extends Scene {
       }
     );
 
+      this.load.spritesheet("playerSprite3", "player3.png",
+          {
+              frameHeight: 63,
+              frameWidth: 63
+          }
+      );
+      
     this.load.spritesheet("playerSprite2", "player2.png",
       {
         frameHeight: 63,
@@ -173,7 +180,7 @@ export class Preloader extends Scene {
       frames: this.anims.generateFrameNumbers("playerSprite2", {
         frames: [8, 9, 10, 11],
       }),
-      frameRate: 10,
+      frameRate: 7,
       repeat: -1,
     });
 
@@ -182,7 +189,7 @@ export class Preloader extends Scene {
       frames: this.anims.generateFrameNumbers("playerSprite2", {
         frames: [4, 5, 6, 7],
       }),
-      frameRate: 10,
+      frameRate: 7,
       repeat: -1,
     });
 
@@ -191,7 +198,7 @@ export class Preloader extends Scene {
       frames: this.anims.generateFrameNumbers("playerSprite2", {
         frames: [12, 13, 14, 15],
       }),
-      frameRate: 20,
+      frameRate: 7,
     });
 
     this.anims.create({
@@ -199,14 +206,57 @@ export class Preloader extends Scene {
       frames: this.anims.generateFrameNumbers("playerSprite2", {
         frames: [0, 1, 2, 3],
       }),
-      frameRate: 20,
+      frameRate: 7,
     });
 
     this.anims.create({
       key: "playerSprite2_turn",
       frames: [{ key: "playerSprite2", frame: 1 }],
-      frameRate: 20,
+      frameRate: 7,
     });
+    
+    ////
+
+
+      this.anims.create({
+          key: "playerSprite3_walkRight",
+          frames: this.anims.generateFrameNumbers("playerSprite3", {
+              frames: [8, 9, 10, 11],
+          }),
+          frameRate: 7,
+          repeat: -1,
+      });
+
+      this.anims.create({
+          key: "playerSprite3_walkLeft",
+          frames: this.anims.generateFrameNumbers("playerSprite3", {
+              frames: [4, 5, 6, 7],
+          }),
+          frameRate: 7,
+          repeat: -1,
+      });
+
+      this.anims.create({
+          key: "playerSprite3_walkUp",
+          frames: this.anims.generateFrameNumbers("playerSprite3", {
+              frames: [12, 13, 14, 15],
+          }),
+          frameRate: 7,
+      });
+
+      this.anims.create({
+          key: "playerSprite3_walkDown",
+          frames: this.anims.generateFrameNumbers("playerSprite3", {
+              frames: [0, 1, 2, 3],
+          }),
+          frameRate: 7,
+      });
+
+      this.anims.create({
+          key: "playerSprite3_turn",
+          frames: [{ key: "playerSprite3", frame: 1 }],
+          frameRate: 7,
+      });
   }
 
   changeScene() {

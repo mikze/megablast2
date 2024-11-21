@@ -2,8 +2,8 @@ import { EventBus } from '../EventBus';
 import { Scene } from 'phaser';
 import { Connection } from '../SignalR/Connection';
 import { PlayerManager } from './PlayerManager';
-import { receiveMessage } from '../../chatReciever'
-import  configureStore  from '../../Store'
+import { receiveMessage } from '../../storesAndReducers/chatReducer'
+import  configureStore  from '../../storesAndReducers/Store'
 
 const TEXT_STYLE = {
     fontFamily: 'Arial Black',
@@ -13,6 +13,12 @@ const TEXT_STYLE = {
     strokeThickness: 8,
     align: 'center'
 };
+
+interface Config {
+    monsterAmount : number,
+    monsterSpeed: number
+    bombDelay: number
+}
 
 export class Lobby extends Scene {
 
@@ -43,6 +49,8 @@ export class Lobby extends Scene {
         await Connection.connection.invoke("RestartGame");
         this.setPlayerNames();
         Connection.lobby = this;
+        await Connection.connection.invoke("GetConfig");
+        await Connection.connection.invoke("AmIAdmin");
         return Promise.resolve();
     }
 
@@ -65,6 +73,11 @@ export class Lobby extends Scene {
         configureStore.dispatch(receiveMessage({message: message, username: user}));
     }
 
+    setCfg(config : Config)
+    {
+        Connection.InvokeConnection("SetConfig", config);
+    }
+
     sendMsg(user: string, message: string) {
         console.log(user + ": " + message);
         Connection.InvokeConnection("SendMessage", user, message);
@@ -75,6 +88,8 @@ export class Lobby extends Scene {
             .setOrigin(0.5).setDepth(100));
     }
 
+    private skins = ['playerSprite', 'playerSprite2', 'playerSprite3']
+    private skinIndex = 0;
     private addPlayerControls(player: any, dist: number): void {
         const rightButton = this.add.text(230, 140 + dist, ">", TEXT_STYLE)
             .setScale(20 / 30)
@@ -88,12 +103,12 @@ export class Lobby extends Scene {
         
         rightButton.on('pointerdown', () => {
             player.skinUp();
-            Connection.connection.invoke("ChangeSkin", "playerSprite2");
+            Connection.connection.invoke("ChangeSkin", this.skins[this.skinIndex === this.skins.length-1 ?  this.skinIndex : ++this.skinIndex]);
         });
         
         leftButton.on('pointerdown', () => {
             player.skinDown();
-            Connection.connection.invoke("ChangeSkin", "playerSprite");
+            Connection.connection.invoke("ChangeSkin", this.skins[this.skinIndex === 0 ? this.skinIndex : --this.skinIndex]);
         });
     }
 
@@ -101,7 +116,7 @@ export class Lobby extends Scene {
         this.initializeConnection();
         this.camera = this.cameras.main;
         this.camera.setBackgroundColor(0x00ff00);
-        this.background = this.add.image(300, 384, 'background');
+        this.background = this.add.image(510, 384, 'background');
         //this.add.sprite(100, 140 + dist, player.skin).setScale(1);//backgroundtile
         EventBus.emit('current-scene-ready', this);
     }

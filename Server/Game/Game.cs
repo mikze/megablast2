@@ -28,8 +28,10 @@ public static class Game
     private static HubGameService? _hubGameService;
     public static readonly object LockObject = new ();
     private static int MonsterAmount { get; set; } = 5;
-    private static double MonsterSpeed { get; set; } = 1.3;
+    public static double MonsterSpeed { get; set; } = 1.3;
     public static int BombDelay { get; set; } = 2000;
+    private static readonly MonsterFactory MonsterFactory = new (MonsterAmount);
+    private static readonly PlayerHandler PlayerHandler = new ();
 
     public static GameConfig GetConfig()
     {
@@ -38,9 +40,13 @@ public static class Game
     
     public static void SetGameConfig(GameConfig config)
     {
-        MonsterAmount = config.MonsterAmount;
+        MonsterAmount = MonsterFactory.MonsterAmount = config.MonsterAmount;
         MonsterSpeed = config.MonsterSpeed;
         BombDelay = config.BombDelay;
+        foreach (var player in Players)
+        {
+            player.BombDelay = BombDelay;
+        }
     }
     public static IReadOnlyList<IEntity> GetEntities()
     {
@@ -49,14 +55,14 @@ public static class Game
             return _entities.ToArray();
         }
     }
-    private static void AddEntities(IEntity entity)
+    public static void AddEntities(IEntity entity)
     {
         lock (LockObject)
         {
             _entities.Add(entity);
         }
     }
-    
+
     private static void AddEntities(IEnumerable<IEntity> entities)
     {
         lock (LockObject)
@@ -65,7 +71,7 @@ public static class Game
         }
     }
     
-    public static Player[] Players { get; } =
+    private static Player[] Players { get; } =
     [
         new (){ Id = string.Empty, Live = false},
         new (){ Id = string.Empty, Live = false},
@@ -84,7 +90,7 @@ public static class Game
         return GetMap();
     }
 
-    private static void RemoveEntities(Type? type = null)
+    public static void RemoveEntities(Type? type = null)
     {
         lock (LockObject)
         {
@@ -94,54 +100,31 @@ public static class Game
                 _entities.RemoveAll(e => e.GetType() == type);
         }
     }
-    
-    private static List<(double X, double Y)> FindAllEmptyCoordinates() => MapHandler.GetEmptySpaces();
+
+    public static List<(double X, double Y)> FindAllEmptyCoordinates() => MapHandler.GetEmptySpaces();
 
     public static Wall[] GetMap() => GetEntities().Where(e => e is Wall).Cast<Wall>().ToArray();
 
-    private static void GenerateMonsters()
-    {
-        RemoveEntities(typeof(Monster));
-        var coords = FindAllEmptyCoordinates().ToArray();
-        Console.WriteLine($"Found {coords.Length} free spots");
-        Random rnd = new Random();
-        for (int i = 0; i < 6; i++)
-        {
-            int r = rnd.Next(coords.Length-1);
-            AddEntities(new Monster(){ PosX = coords[r].X, PosY = coords[r].Y });
-        }
-    }
-
-    public static IEnumerable<Monster> GetMonsters() => GetEntities().Where( e => e is Monster).Cast<Monster>();
+    private static void GenerateMonsters() => MonsterFactory.GenerateMonsters();
+    
+    public static IEnumerable<IMonster> GetMonsters() => GetEntities().Where( e => e is IMonster).Cast<IMonster>();
 
     public static void AddPlayer(string id)
     {
-        if (GetFreePlayerSlotNumber(out int idPlayer))
+        if (!GetFreePlayerSlotNumber(out var idPlayer)) return;
+
+        var newPlayer = idPlayer switch
         {
-            Player? newPlayer = null;
+            0 => new Player { Id = id, Name = "mikze", PosX = 101, PosY = 100 },
+            1 => new Player { Id = id, Name = "mikze", PosX = 99 + 14 * 50, PosY = 100 },
+            2 => new Player { Id = id, Name = "mikze", PosX = 99 + 14 * 50, PosY = 99 + 13 * 50 },
+            3 => new Player { Id = id, Name = "mikze", PosX = 101, PosY = 99 + 13 * 50 },
+            _ => null
+        };
 
-            switch (idPlayer)
-            {
-                case 0:
-                    newPlayer = new Player() { Id = id, Name = "mikze", PosX = 101, PosY = 100 };
-                    break;
-                case 1:
-                    newPlayer = new Player() { Id = id, Name = "mikze", PosX = 99 + 14 * 50, PosY = 100 };
-                    break;
-                case 2:
-                    newPlayer = new Player() { Id = id, Name = "mikze", PosX = 99 + 14 * 50, PosY = 99 + 13 * 50 };
-                    break;
-                case 3:
-                    newPlayer = new Player() { Id = id, Name = "mikze", PosX = 101, PosY = 99 + 13 * 50 };
-                    break;
-            }
-
-            if (newPlayer != null)
-            {
-                Players[idPlayer] = newPlayer;
-                AddEntities(newPlayer);
-            }
-        }
+        if (newPlayer == null) return;
+        Players[idPlayer] = newPlayer;
+        AddEntities(newPlayer);
     }
 
     private static bool GetFreePlayerSlotNumber(out int number)
@@ -168,13 +151,6 @@ public static class Game
                 _entities.Remove(player);
             }
         }
-    }
-
-    public static void MovePlayer(string id, MoveDirection moveDirection)
-    {
-        Thread.Sleep(5);
-        var player = Players.FirstOrDefault(p => p.Id == id);
-        player?.MovePlayer(moveDirection);
     }
 
     public static void ChangeName(string id, string newName)
@@ -267,4 +243,7 @@ public static class Game
     {
         return _hubGameService;
     }
+
+    public static Player[] GetPlayers() => Players;
+    
 }

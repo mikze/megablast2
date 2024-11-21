@@ -58,7 +58,7 @@ function Chat(props: Props) {
                 <Paper className={classes.paper}>
                     <Paper id="style-1" className={classes.messagesBody}>
                         <div className="messages">
-                            {count.map((m, index) => (
+                            {count.map((m : {message : string, username : string}, index : string) => (
                                 <div key={index}>
                                     <MessageLeft
                                         message={m.message}
@@ -82,8 +82,6 @@ function Chat(props: Props) {
                         <button className="button" onClick={() => props.sendMsg(message)}>Send msg</button>
                     </div>
                 </Paper>
-
-
             </div>
         </div>
     )

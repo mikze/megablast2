@@ -9,7 +9,15 @@ import { MapGenerator } from "../scenes/MapGenerator";
 import { BombModel } from "../Player/BombModel";
 import { Monster } from "../Player/Monster";
 import { Lobby } from "../scenes/Lobby";
+import { updateConfig } from '../../storesAndReducers/configReducer';
+import { setAdmin } from '../../storesAndReducers/adminReducer';
+import  configureStore  from '../../storesAndReducers/Store'
 
+interface Config {
+    monsterAmount : number,
+    monsterSpeed: number
+    bombDelay: number
+}
 
 export class Connection {
     static connection: HubConnection;
@@ -71,6 +79,18 @@ export class Connection {
         connection.on("BackToLobby", Connection.handleBackToLobby);
         connection.on("GetMonsters", Connection.getMonsters);
         connection.on("MoveMonsters", Connection.moveMonsters)
+        connection.on("GetConfig", Connection.getConfig)
+        connection.on("IsAdmin", Connection.isAdmin)
+    }
+
+    static isAdmin(isAdmin: boolean) {
+        console.log("IsAdmin", isAdmin);
+        configureStore.dispatch(setAdmin({isAdmin: isAdmin}));
+    }
+    
+    static getConfig(config: Config) {
+        console.log("GetConfig", config);
+        configureStore.dispatch(updateConfig(config));
     }
 
     static InvokeConnection(action: string, ...args: any[]) {
@@ -89,9 +109,9 @@ export class Connection {
         }
     }
 
-    private static handleReceiveMessage(user: string, message: string): void {
+    private static handleReceiveMessage(id: string, user: string, message: string): void {
         if (Connection.gameLevel !== undefined)
-            Connection.gameLevel.recMsg(user, message);
+            Connection.gameLevel.recMsg(id, message);
         if (Connection.lobby !== undefined)
             Connection.lobby.recMsg(user, message);
     }

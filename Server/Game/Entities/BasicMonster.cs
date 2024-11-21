@@ -1,11 +1,14 @@
 // Monster.cs
+
+using Server.Game.Interface;
+
 namespace Server.Game.Entities;
 
-public class Monster : EntityBase
+public class BasicMonster : EntityBase, IMonster
 {
-    private MoveDirection MoveDirection { get; set; }
+    protected MoveDirection MoveDirection { get; set; }
 
-    public Monster()
+    public BasicMonster()
     {
         Id = Guid.NewGuid().ToString();
         Width = 36;
@@ -13,9 +16,9 @@ public class Monster : EntityBase
         Destructible = true;
     }
 
-    private const double MovementIncrement = 1.3;
+    protected virtual  double MovementIncrement => Game.MonsterSpeed;
 
-    public void Move()
+    public virtual void Move(MoveDirection direction)
     {
         var oldPos = new { x = PosX, y = PosY };
         UpdatePosition(MoveDirection);
@@ -25,7 +28,7 @@ public class Monster : EntityBase
         ChangeDirection();
     }
 
-    private bool CollisionCheck()
+    protected virtual bool CollisionCheck()
     {
         foreach (var entity in Game.GetEntities().Where(e => e.Id != Id))
             if (entity.CheckCollision(this))
@@ -41,19 +44,19 @@ public class Monster : EntityBase
         return false;
     }
 
-    private void ChangeDirection()
+    protected void ChangeDirection()
     {
         MoveDirection = GenerateRandomDirection();
     }
 
-    private MoveDirection GenerateRandomDirection()
+    protected MoveDirection GenerateRandomDirection()
     {
         var directions = Enum.GetValues(typeof(MoveDirection)).Cast<MoveDirection>().ToArray();
         var random = new Random();
         return directions[random.Next(0, directions.Length-1)];
     }
 
-    private void UpdatePosition(MoveDirection moveDirection)
+    protected void UpdatePosition(MoveDirection moveDirection)
     {
         switch (moveDirection)
         {

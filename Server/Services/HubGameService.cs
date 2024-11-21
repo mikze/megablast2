@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.SignalR;
 using Server.Game;
 using Server.Game.Entities;
+using Server.Game.Interface;
 
 namespace Server.Services;
 
@@ -73,22 +74,22 @@ public class HubGameService : BackgroundService
     
     private void MoveLiveMonster()
     {
-        foreach (Monster monster in Game.Game.GetMonsters().Where(p => p is { Destroyed: false }))
-            monster.Move();
+        foreach (IMonster monster in Game.Game.GetMonsters().Where(p => p is { Destroyed: false }))
+            monster.Move(MoveDirection.None);
     }
     
     private void MoveLivePlayers()
     {
-        foreach (var player in Game.Game.Players.Where(p =>
+        foreach (var player in Game.Game.GetPlayers().Where(p =>
                      p is { Live: true, Dead: false } && p.MoveDirection != MoveDirection.None))
         {
-            player.MovePlayer(player.MoveDirection);
+            player.Move(player.MoveDirection);
         }
     }
 
     private void SendPlayerLocations()
     {
-        var playerModels = Game.Game.Players.Select(p => new PlayerModel(p)).ToArray();
+        var playerModels = Game.Game.GetPlayers().Select(p => new PlayerModel(p)).ToArray();
         HubContext.Clients.All.SendAsync("MovePlayer", playerModels);
     }
 }

@@ -27,7 +27,7 @@ public class Bomb : EntityBase
         try
         {
             Console.WriteLine($"PLANT BOMB {Id}");
-            await Task.Delay(Owner.BombDelay);  // Initial delay for bomb planting
+            await Task.Delay(Owner.BombDelay);
             Console.WriteLine($"Explode BOMB {Id}");
             await ExplodeAsync();
         }
@@ -73,7 +73,7 @@ public class Bomb : EntityBase
     {
         switch (entity)
         {
-            case Monster monster:
+            case BasicMonster monster:
                 Console.WriteLine($"Destroy monster: {entity.PosX} {entity.PosY}; fire: {fire.PosX} {fire.PosY}");
                 monster.Destroyed = true;
                 break;

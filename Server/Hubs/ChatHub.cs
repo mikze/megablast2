@@ -6,12 +6,12 @@ public class ChatHub : Hub
     private static readonly List<string> clients = [];
     public async Task SendMessage(string user, string message)
     {
-        var player = Game.Players.FirstOrDefault(p => p.Id == Context.ConnectionId);
+        var player = Game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
         Console.WriteLine($"Received {user}: {message}");
         if (player != null)
         {
             Console.WriteLine("Sending");
-            await Clients.All.SendAsync("ReceiveMessage", player.Name, message);
+            await Clients.All.SendAsync("ReceiveMessage",Context.ConnectionId, player.Name, message);
         }
     }
     public async Task RestartGame()
@@ -24,22 +24,44 @@ public class ChatHub : Hub
             await Game.RestartGame();
         }
     }
-
-    public async void GetConfig()
+    
+    public async Task SetConfig(GameConfig config)
     {
-        await Clients.Caller.SendAsync("ServerIsFull", new { a = 1 });
+        Game.SetGameConfig(config);
+        await GetConfigAll();
+    }
+
+    public async Task AmIAdmin()
+    {
+        var player = Game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
+        if (player != null)
+        {
+            Console.WriteLine($"Setting admin {Game.GetPlayers()[0].Id == player.Id}");
+            await Clients.Caller.SendAsync("IsAdmin", Game.GetPlayers()[0].Id == player.Id);
+        }
+        else
+            Console.WriteLine("Player not found");
+    }
+    public async Task GetConfigAll()
+    {
+        await Clients.All.SendAsync("GetConfig", Game.GetConfig());
+    }
+
+    public async Task GetConfig()
+    {
+        await Clients.Caller.SendAsync("GetConfig", Game.GetConfig());
     }
     
     public void MovePlayer(int moveDirection)
     {
-        var player = Game.Players.FirstOrDefault(p => p.Id == Context.ConnectionId);
+        var player = Game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
         if (player is { Moved: false })
             player.MoveDirection = (MoveDirection)moveDirection;
     }
 
     public async void PlantBomb()
     {
-        var player = Game.Players.FirstOrDefault(p => p.Id == Context.ConnectionId);
+        var player = Game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
         var bomb = player?.PlantBomb();
         if (bomb != null)
             await Clients.All.SendAsync("BombPlanted", new BombModel(bomb));
@@ -53,7 +75,7 @@ public class ChatHub : Hub
     }
     public void ChangeName(string newName)
     {
-        var player = Game.Players.FirstOrDefault(p => p.Id == Context.ConnectionId);
+        var player = Game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
         if (player is null) return;
         
         Game.ChangeName(Context.ConnectionId, newName);
@@ -62,7 +84,7 @@ public class ChatHub : Hub
 
         public void ChangeSkin(string newSkinName)
     {
-        var player = Game.Players.FirstOrDefault(p => p.Id == Context.ConnectionId);
+        var player = Game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
         if (player is null) return;
         
         Game.ChangeSkin(Context.ConnectionId, newSkinName);
@@ -75,7 +97,7 @@ public class ChatHub : Hub
     {
         if (Game.IsMasterPlayer(Context.ConnectionId))
         {
-            var player = Game.Players.FirstOrDefault(p => p.Id == Context.ConnectionId);
+            var player = Game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
             if (player != null)
             {
                 Game.Live = false;
@@ -101,19 +123,19 @@ public class ChatHub : Hub
     {
         Console.WriteLine($"Connected {Context.ConnectionId}");
         clients.Add(Context.ConnectionId);
-        var players = Game.Players.Where(p => p.Live);
+        var players = Game.GetPlayers().Where(p => p.Live);
 
         if (players.Count() >= 4)
         {
             await base.OnConnectedAsync();
             await Clients.Caller.SendAsync("ServerIsFull");
-            await Clients.Caller.SendAsync("Connected", Game.Players.Where(p => p.Live).ToArray(), Context.ConnectionId);
+            await Clients.Caller.SendAsync("Connected", Game.GetPlayers().Where(p => p.Live).ToArray(), Context.ConnectionId);
         }
         else
         {
             await base.OnConnectedAsync();
             Game.AddPlayer(Context.ConnectionId);
-            await Clients.All.SendAsync("Connected", Game.Players.Where(p => p.Live).ToArray(), Context.ConnectionId);
+            await Clients.All.SendAsync("Connected", Game.GetPlayers().Where(p => p.Live).ToArray(), Context.ConnectionId);
         }
     }
 
@@ -122,7 +144,7 @@ public class ChatHub : Hub
         Console.WriteLine($"Disconnected {Context.ConnectionId}");
         clients.Remove(Context.ConnectionId);
         Game.RemovePlayer(Context.ConnectionId);
-        Clients.All.SendAsync("Disconnected", Game.Players.Where(p => p.Live).ToArray(), Context.ConnectionId);
+        Clients.All.SendAsync("Disconnected", Game.GetPlayers().Where(p => p.Live).ToArray(), Context.ConnectionId);
         return base.OnDisconnectedAsync(exception);
     }
 }

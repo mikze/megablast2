@@ -36,7 +36,7 @@ public class Player : EntityBase
         return coll;
     }
 
-    public void MovePlayer(MoveDirection moveDirection)
+    public void Move(MoveDirection moveDirection)
     {
         if (Dead || !Game.Live) return;
         var oldPosX = PosX;

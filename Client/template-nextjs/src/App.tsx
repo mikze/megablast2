@@ -3,12 +3,20 @@ import { IRefPhaserGame, PhaserGame } from './game/PhaserGame';
 import { GameLevel } from './game/scenes/GameLevel';
 import { Preloader } from './game/scenes/Preloader';
 import { Lobby } from './game/scenes/Lobby';
-import store from './Store'
+import store from './storesAndReducers/Store'
 import { Provider } from 'react-redux'
 import ChangeName from './ChangeName';
 import Chat from './Chat';
 import output from '../public/assets/output.jpg';
 import output2 from '../public/assets/output2.jpg';
+import Config from './Config';
+import { StoreEnhancer } from '@reduxjs/toolkit';
+
+interface Cfg {
+    monsterAmount : number,
+    monsterSpeed: number
+    bombDelay: number
+}
 
 function App() {
     //  References to the PhaserGame component (game and scene are exposed)
@@ -33,7 +41,6 @@ function App() {
     }
 
     const sendMsg = (message: string) => {
-
         if (phaserRef.current) {
             const scene = phaserRef.current.scene as GameLevel;
 
@@ -54,6 +61,18 @@ function App() {
         }
     }
     
+    const sendConfig = (cfg : Cfg) =>
+    {
+        console.log("send config ", cfg);
+        if (phaserRef.current) {
+            const scene = phaserRef.current.scene as Lobby;
+
+            if (scene && scene.scene.key === 'Lobby') {
+                scene.setCfg(cfg);
+            }
+        }
+    }
+    
     const currentScene = (scene: Phaser.Scene) => {
         if (scene.scene.key === "Lobby") {
             setBackToLobbyIsVisible(false);
@@ -65,14 +84,18 @@ function App() {
         }
     }
 
-    const ButtonGroup = () => (
+    const ButtonGroup = (store : any) => (
         <div>
-            
             <div>
+                {!isVisibleBackToLobby && <Config sendConfig={sendConfig} store={store}/>}
                 {!isVisibleBackToLobby && <ChangeName changeName={changeName}/>}
             </div>
         </div>
     );
+
+    function handleChange() {
+        console.log("change");
+    }
 
     return (
         <Provider store={store}>
@@ -80,7 +103,7 @@ function App() {
                 <div id="borderimg">
                     <div className="container">
                         <div className="item2">
-                            <ButtonGroup/>
+                            <ButtonGroup store={store}/>
                         </div>
                         <div>
                             <PhaserGame ref={phaserRef} currentActiveScene={currentScene}/>
