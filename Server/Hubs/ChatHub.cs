@@ -1,150 +1,205 @@
 using Microsoft.AspNetCore.SignalR;
 using Server.Game;
+using Server.Game.Entities;
 
-public class ChatHub : Hub
+namespace Server.Hubs;
+
+public class ChatHub(GameManager gameManager) : Hub
 {
-    private static readonly List<string> clients = [];
+    private Game.Game GetGame(string gameName)
+    {
+        return gameManager.GetGameByGroupName(gameName);
+    }
+
+    private readonly List<string> _clients = [];
+
     public async Task SendMessage(string user, string message)
     {
-        var player = Game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
+        var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
+        var player = game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
         Console.WriteLine($"Received {user}: {message}");
         if (player != null)
         {
             Console.WriteLine("Sending");
-            await Clients.All.SendAsync("ReceiveMessage",Context.ConnectionId, player.Name, message);
+            await Clients.Group(gameManager.GetGameName(game)).SendAsync("ReceiveMessage",Context.ConnectionId, player.Name, message);
         }
     }
     public async Task RestartGame()
     {
-        if (Game.IsMasterPlayer(Context.ConnectionId))
+        var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
+        if (game.IsMasterPlayer(Context.ConnectionId))
         {
-            foreach(var c in clients)
+            foreach(var c in _clients)
                 Console.WriteLine($"RestartGame to client {c}");
 
-            await Game.RestartGame();
+            await game.RestartGame();
         }
     }
     
     public async Task SetConfig(GameConfig config)
     {
-        Game.SetGameConfig(config);
+        var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
+        game.SetGameConfig(config);
         await GetConfigAll();
     }
 
     public async Task AmIAdmin()
     {
-        var player = Game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
+        var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
+        var player = game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
         if (player != null)
         {
-            Console.WriteLine($"Setting admin {Game.GetPlayers()[0].Id == player.Id}");
-            await Clients.Caller.SendAsync("IsAdmin", Game.GetPlayers()[0].Id == player.Id);
+            Console.WriteLine($"Setting admin {game.GetPlayers()[0].Id == player.Id}");
+            await Clients.Caller.SendAsync("IsAdmin", game.GetPlayers()[0].Id == player.Id);
         }
         else
             Console.WriteLine("Player not found");
     }
     public async Task GetConfigAll()
     {
-        await Clients.All.SendAsync("GetConfig", Game.GetConfig());
+        var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
+        await Clients.Group(gameManager.GetGameName(game)).SendAsync("GetConfig", game.GetConfig());
     }
 
     public async Task GetConfig()
     {
-        await Clients.Caller.SendAsync("GetConfig", Game.GetConfig());
+        var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
+        await Clients.Caller.SendAsync("GetConfig", game.GetConfig());
     }
     
     public void MovePlayer(int moveDirection)
     {
-        var player = Game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
+        var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
+        var player = game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
         if (player is { Moved: false })
             player.MoveDirection = (MoveDirection)moveDirection;
     }
 
-    public async void PlantBomb()
+    public async Task PlantBomb()
     {
-        var player = Game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
+        var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
+        var player = game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
         var bomb = player?.PlantBomb();
         if (bomb != null)
-            await Clients.All.SendAsync("BombPlanted", new BombModel(bomb));
+            await Clients.Group(gameManager.GetGameName(game)).SendAsync("BombPlanted", new BombModel(bomb));
     }
 
     public void GetMonsters()
     {
-        Console.WriteLine("Getting Monsters");
-        var monsters = Game.GetMonsters();
+        var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
+        var monsters = game.GetMonsters();
         Clients.Caller.SendAsync("GetMonsters", monsters);
     }
     public void ChangeName(string newName)
     {
-        var player = Game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
+        var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
+        var player = game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
         if (player is null) return;
         
-        Game.ChangeName(Context.ConnectionId, newName);
-        Clients.All.SendAsync("NameChanged", Context.ConnectionId, newName);
+        game.ChangeName(Context.ConnectionId, newName);
+        Clients.Group(gameManager.GetGameName(game)).SendAsync("NameChanged", Context.ConnectionId, newName);
     }
 
-        public void ChangeSkin(string newSkinName)
+    public void ChangeSkin(string newSkinName)
     {
-        var player = Game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
+        var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
+        var player = game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
         if (player is null) return;
         
-        Game.ChangeSkin(Context.ConnectionId, newSkinName);
-        Clients.All.SendAsync("SkinChanged", Context.ConnectionId, newSkinName);
+        game.ChangeSkin(Context.ConnectionId, newSkinName);
+        Clients.Group(gameManager.GetGameName(game)).SendAsync("SkinChanged", Context.ConnectionId, newSkinName);
     }
 
-    public async void GetMap() => await Clients.Caller.SendAsync("GetMap", Game.GetMap());
+    public async Task GetMap() => await Clients.Caller.SendAsync("GetMap", gameManager.GetGameByConnectionId(Context.ConnectionId).GetMap());
     
-    public void BackToLobby()
+    public async Task BackToLobby()
     {
-        if (Game.IsMasterPlayer(Context.ConnectionId))
+        var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
+        if (game.IsMasterPlayer(Context.ConnectionId))
         {
-            var player = Game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
+            var player = game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
             if (player != null)
             {
-                Game.Live = false;
-                Clients.All.SendAsync("BackToLobby");
+                game.Live = false;
+                await Clients.Group(gameManager.GetGameName(game)).SendAsync("BackToLobby");
             }
         }
     }
 
     public async Task Start()
     {
-        if (Game.IsMasterPlayer(Context.ConnectionId))
+        var game = gameManager.GetGameById(1);
+        if (game.IsMasterPlayer(Context.ConnectionId))
         {
-            Game.Live = true;
-            await Game.RestartGame();
-            foreach(var c in clients)
-                Console.WriteLine($"START to client {c}");
-
-            await Clients.All.SendAsync("Start");
+            game.Live = true;
+            await game.RestartGame();
+            var gameName = gameManager.GetGameName(game);
+            await Clients.Group(gameName).SendAsync("Start");
         }
     }
 
-    public override async Task OnConnectedAsync()
+    public Task CreateGame(string gameName)
     {
-        Console.WriteLine($"Connected {Context.ConnectionId}");
-        clients.Add(Context.ConnectionId);
-        var players = Game.GetPlayers().Where(p => p.Live);
+        Console.WriteLine("Create game");
+        gameManager.CreateGame(gameName);
+        return Task.CompletedTask;
+    }
+    
+    public Task CloseGame(string gameName)
+    {
+        Console.WriteLine("Destroy game");
+        gameManager.DestroyGame(gameName);
+        return Task.CompletedTask;
+    }
+    
+    public async Task GetRunningAllGames()
+    {
+        await Clients.Caller.SendAsync("RunningAllGames", gameManager.GetAllGames().Select(gameManager.GetGameName));
+    }
+    
+    public async Task JoinToGroup(string groupName)
+    {
+        if (!gameManager.ClientExist(Context.ConnectionId))
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+            gameManager.AddConnectionToGame(groupName, Context.ConnectionId);
+            Console.WriteLine($"{Context.ConnectionId} has joined the group {groupName}.");
 
-        if (players.Count() >= 4)
-        {
-            await base.OnConnectedAsync();
-            await Clients.Caller.SendAsync("ServerIsFull");
-            await Clients.Caller.SendAsync("Connected", Game.GetPlayers().Where(p => p.Live).ToArray(), Context.ConnectionId);
-        }
-        else
-        {
-            await base.OnConnectedAsync();
-            Game.AddPlayer(Context.ConnectionId);
-            await Clients.All.SendAsync("Connected", Game.GetPlayers().Where(p => p.Live).ToArray(), Context.ConnectionId);
+            var game = gameManager.GetGameByGroupName(groupName);
+            var players = game.GetPlayers().Where(p => p.Live);
+            var enumerable = players as Player[] ?? players.ToArray();
+            if (enumerable.Length >= 4)
+            {
+                await base.OnConnectedAsync();
+                await Clients.Caller.SendAsync("ServerIsFull");
+                await Clients.Caller.SendAsync("Connected", enumerable.Where(p => p.Live).ToArray(),
+                    Context.ConnectionId);
+            }
+            else
+            {
+                await base.OnConnectedAsync();
+                game.AddPlayer(Context.ConnectionId);
+                await Clients.Group(gameManager.GetGameName(game)).SendAsync("Connected",
+                    game.GetPlayers().Where(p => p.Live).ToArray(), Context.ConnectionId);
+            }
         }
     }
+    
 
     public override Task OnDisconnectedAsync(Exception? exception)
     {
         Console.WriteLine($"Disconnected {Context.ConnectionId}");
-        clients.Remove(Context.ConnectionId);
-        Game.RemovePlayer(Context.ConnectionId);
-        Clients.All.SendAsync("Disconnected", Game.GetPlayers().Where(p => p.Live).ToArray(), Context.ConnectionId);
+        _clients.Remove(Context.ConnectionId);
+        try
+        {
+            var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
+            game.RemovePlayer(Context.ConnectionId);
+            Clients.Group(gameManager.GetGameName(game)).SendAsync("Disconnected", game.GetPlayers().Where(p => p.Live).ToArray(), Context.ConnectionId);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
         return base.OnDisconnectedAsync(exception);
     }
 }

@@ -2,12 +2,14 @@ import { configureStore } from '@reduxjs/toolkit'
 import chatReducer from './chatReducer'
 import configReducer from './configReducer';
 import adminReducer from './adminReducer'
+import gamesReducer from './gamesReducer';
 
 const store = configureStore({
     reducer: {
         chat: chatReducer,
         config: configReducer,
-        admin: adminReducer
+        admin: adminReducer,
+        games: gamesReducer
     },
 })
 

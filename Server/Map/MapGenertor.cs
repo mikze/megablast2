@@ -10,7 +10,7 @@ public static class MapHandler
 
     private static List<(double X, double Y)> _emptySpaces = [];
 
-    public static Wall[]? GenerateMap()
+    public static Wall[]? GenerateMap(Game.Game game)
     {
         _walls = new List<Wall>();
         _emptySpaces = new List<(double X, double Y)>();
@@ -41,7 +41,7 @@ public static class MapHandler
             {
                 if (x != 0)
                 {
-                    var wall = new Wall()
+                    var wall = new Wall(game)
                     {
                         PosX = posX,
                         PosY = posY,

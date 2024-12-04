@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.SignalR;
 using Server.Game.Interface;
 
@@ -9,7 +10,7 @@ public class Bomb : EntityBase
     public Player Owner { get; }
     private int FireSize => Owner.GetFireSize();
 
-    public Bomb(double x, double y, Player owner)
+    public Bomb(double x, double y, Player owner, Game game) : base(game)
     {
         Id = Guid.NewGuid().ToString();
         Owner = owner;
@@ -43,7 +44,7 @@ public class Bomb : EntityBase
          await Game.GetHubGameService()?.HubContext.Clients.All.SendAsync("BombExplode", new BombModel(this))!;
     }
 
-    private static async Task<List<Fire>> CalcAsync(List<Fire> fires)
+    private async Task<List<Fire>> CalcAsync(List<Fire> fires)
     {
         var fireList = new List<Fire>();
         var entities = Game.GetEntities().Where(y => y.Destructible).ToArray();
@@ -69,7 +70,7 @@ public class Bomb : EntityBase
         return fireList;
     }
     
-    private static async Task HandleEntityDestructionAsync(IEntity entity, Fire fire)
+    private async Task HandleEntityDestructionAsync(IEntity entity, Fire fire)
     {
         switch (entity)
         {
@@ -123,7 +124,7 @@ public class Bomb : EntityBase
 
         for (var i = 1; i <= FireSize; i++)
         {
-            fires.Add(new Fire() 
+            fires.Add(new Fire(Game) 
             { 
                 PosX = x + (i * 32 * xMultiplier), 
                 PosY = y + (i * 32 * yMultiplier)
@@ -136,7 +137,7 @@ public class Bomb : EntityBase
 
 public class Fire : EntityBase
 {
-    public Fire()
+    public Fire(Game game) : base(game)
     {
         Height = Width = 25;
     }

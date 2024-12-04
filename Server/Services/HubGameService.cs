@@ -1,19 +1,19 @@
 using Microsoft.AspNetCore.SignalR;
 using Server.Game;
-using Server.Game.Entities;
-using Server.Game.Interface;
+using Server.Hubs;
 
 namespace Server.Services;
 
 public class HubGameService : BackgroundService
 {
-    public readonly IHubContext<ChatHub> HubContext;
-
-    public HubGameService(IHubContext<ChatHub> hubContext)
+    public HubGameService(IHubContext<ChatHub> hubContext, GameManager gameManager)
     {
         HubContext = hubContext;
-        Game.Game.SetHubGameService(this);
+        _gameManager = gameManager;
+        _gameManager.SetHubGameService(this);
     }
+    private readonly GameManager _gameManager;
+    public readonly IHubContext<ChatHub> HubContext;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -31,65 +31,63 @@ public class HubGameService : BackgroundService
     {
         while (true)
         {
-            try
+            foreach (var game in _gameManager.GetAllGames())
             {
-                RemoveDestroyedEntities();
-
-                MoveLivePlayers();
-                MoveLiveMonster();
-
-                Thread.Sleep(10);
-
-                if (Game.Game.Live)
+                try
                 {
-                    SendPlayerLocations();
-                    SendMonstersLocations();
+                    RemoveDestroyedEntities(game);
+
+                    MoveLivePlayers(game);
+                    MoveLiveMonster(game);
+
+                    Thread.Sleep(10);
+
+                    if (!game.Live) continue;
+                    SendPlayerLocations(game);
+                    SendMonstersLocations(game);
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
             }
         }
     }
 
-    private void RemoveDestroyedEntities()
+    private void RemoveDestroyedEntities(Game.Game game)
     {
-        foreach (var entity in Game.Game.GetEntities().Where(e => e.Destroyed))
+        foreach (var entity in game.GetEntities().Where(e => e.Destroyed))
         {
             HubContext.Clients.All.SendAsync("RemoveEntity", entity.Id);
         }
-
-        lock (Game.Game.LockObject)
-        {
-            Game.Game.RemoveDestroyedEntities();
-        }
+        
+        game.RemoveDestroyedEntities();
     }
     
-    private void SendMonstersLocations()
+    private void SendMonstersLocations(Game.Game game)
     {
-        var monsters = Game.Game.GetMonsters().Where(p => p is { Destroyed: false });
+        var monsters = game.GetMonsters().Where(p => p is { Destroyed: false });
         HubContext.Clients.All.SendAsync("MoveMonsters", monsters);
     }
     
-    private void MoveLiveMonster()
+    private void MoveLiveMonster(Game.Game game)
     {
-        foreach (IMonster monster in Game.Game.GetMonsters().Where(p => p is { Destroyed: false }))
+        foreach (var monster in game.GetMonsters().Where(p => p is { Destroyed: false }))
             monster.Move(MoveDirection.None);
     }
     
-    private void MoveLivePlayers()
+    private void MoveLivePlayers(Game.Game game)
     {
-        foreach (var player in Game.Game.GetPlayers().Where(p =>
+        foreach (var player in game.GetPlayers().Where(p =>
                      p is { Live: true, Dead: false } && p.MoveDirection != MoveDirection.None))
         {
             player.Move(player.MoveDirection);
         }
     }
 
-    private void SendPlayerLocations()
+    private void SendPlayerLocations(Game.Game game)
     {
-        var playerModels = Game.Game.GetPlayers().Select(p => new PlayerModel(p)).ToArray();
+        var playerModels = game.GetPlayers().Select(p => new PlayerModel(p)).ToArray();
         HubContext.Clients.All.SendAsync("MovePlayer", playerModels);
     }
 }

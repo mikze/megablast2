@@ -15,12 +15,13 @@ public class Player : EntityBase
     public int MaxBombs { get; set; } = 1;
     private int Lives { get; set; } = 1;
     public string Skin { get; set; } = "playerSprite";
-    public int BombDelay { get; set; } = Game.BombDelay;
+    public int BombDelay { get; set; }
 
     private int _fireSize = 3;
 
-    public Player()
+    public Player(Game game) : base(game)
     {
+        BombDelay = game.BombDelay;
         Destructible = true;
         Width = 36;
         Height = 43;

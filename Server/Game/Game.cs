@@ -16,31 +16,44 @@ public enum MoveDirection
 }
 public class GameConfig
 {
-    public int MonsterAmount { get; set; }
-    public double MonsterSpeed { get; set; }
-    public int BombDelay { get; set; }
+    public int MonsterAmount { get; init; }
+    public double MonsterSpeed { get; init; }
+    public int BombDelay { get; init; }
 }
-public static class Game
+public class Game
 {
-    
-    public static bool Live { get; set; }
-    private static List<IEntity> _entities = [];
-    private static HubGameService? _hubGameService;
-    public static readonly object LockObject = new ();
-    private static int MonsterAmount { get; set; } = 5;
-    public static double MonsterSpeed { get; set; } = 1.3;
-    public static int BombDelay { get; set; } = 2000;
-    private static readonly MonsterFactory MonsterFactory = new (MonsterAmount);
-    private static readonly PlayerHandler PlayerHandler = new ();
+    public int Id { get; set; }
+    public bool Live { get; set; }
+    private List<IEntity> _entities = [];
+    private HubGameService? _hubGameService;
+    private readonly object _lockObject = new ();
+    private int MonsterAmount { get; set; } = 5;
+    public double MonsterSpeed { get; private set; } = 1.3;
+    public int BombDelay { get; private set; } = 2000;
+    private readonly MonsterFactory _monsterFactory;
+    private readonly PlayerHandler _playerHandler = new ();
 
-    public static GameConfig GetConfig()
+    public Game(HubGameService hubGameService)
+    {
+        _hubGameService = hubGameService;
+        _monsterFactory = new MonsterFactory(5, this);
+        Players =
+        [
+            new (this){ Id = string.Empty, Live = false},
+            new (this){ Id = string.Empty, Live = false},
+            new (this){ Id = string.Empty, Live = false},
+            new (this){ Id = string.Empty, Live = false}
+        ];
+    }
+
+    public GameConfig GetConfig()
     {
         return new GameConfig { MonsterAmount = MonsterAmount, MonsterSpeed = MonsterSpeed, BombDelay = BombDelay };
     }
     
-    public static void SetGameConfig(GameConfig config)
+    public void SetGameConfig(GameConfig config)
     {
-        MonsterAmount = MonsterFactory.MonsterAmount = config.MonsterAmount;
+        MonsterAmount = _monsterFactory.MonsterAmount = config.MonsterAmount;
         MonsterSpeed = config.MonsterSpeed;
         BombDelay = config.BombDelay;
         foreach (var player in Players)
@@ -48,51 +61,45 @@ public static class Game
             player.BombDelay = BombDelay;
         }
     }
-    public static IReadOnlyList<IEntity> GetEntities()
+    public IReadOnlyList<IEntity> GetEntities()
     {
-        lock (LockObject)
+        lock (_lockObject)
         {
             return _entities.ToArray();
         }
     }
-    public static void AddEntities(IEntity entity)
+    public void AddEntities(IEntity entity)
     {
-        lock (LockObject)
+        lock (_lockObject)
         {
             _entities.Add(entity);
         }
     }
 
-    private static void AddEntities(IEnumerable<IEntity> entities)
+    private void AddEntities(IEnumerable<IEntity> entities)
     {
-        lock (LockObject)
+        lock (_lockObject)
         {
             _entities.AddRange(entities);
         }
     }
     
-    private static Player[] Players { get; } =
-    [
-        new (){ Id = string.Empty, Live = false},
-        new (){ Id = string.Empty, Live = false},
-        new (){ Id = string.Empty, Live = false},
-        new (){ Id = string.Empty, Live = false}
-    ];
+    private Player[] Players { get; }
 
-    private static Player? MasterPlayer => Players.Length != 0 ? Players[0] : null;
-    public static bool IsMasterPlayer(string id) => MasterPlayer is not null && MasterPlayer.Id == id;
-    private static Wall[] GenerateMap()
+    private Player? MasterPlayer => Players.Length != 0 ? Players[0] : null;
+    public bool IsMasterPlayer(string id) => MasterPlayer is not null && MasterPlayer.Id == id;
+    private Wall[] GenerateMap()
     {
-        var map = MapHandler.GenerateMap();
+        var map = MapHandler.GenerateMap(this);
         if(map is not null)
             AddEntities(map);
         
         return GetMap();
     }
 
-    public static void RemoveEntities(Type? type = null)
+    public void RemoveEntities(Type? type = null)
     {
-        lock (LockObject)
+        lock (_lockObject)
         {
             if (type is null)
                 _entities = [];
@@ -101,24 +108,24 @@ public static class Game
         }
     }
 
-    public static List<(double X, double Y)> FindAllEmptyCoordinates() => MapHandler.GetEmptySpaces();
+    public List<(double X, double Y)> FindAllEmptyCoordinates() => MapHandler.GetEmptySpaces();
 
-    public static Wall[] GetMap() => GetEntities().Where(e => e is Wall).Cast<Wall>().ToArray();
+    public Wall[] GetMap() => GetEntities().Where(e => e is Wall).Cast<Wall>().ToArray();
 
-    private static void GenerateMonsters() => MonsterFactory.GenerateMonsters();
+    private void GenerateMonsters() => _monsterFactory.GenerateMonsters();
     
-    public static IEnumerable<IMonster> GetMonsters() => GetEntities().Where( e => e is IMonster).Cast<IMonster>();
+    public IEnumerable<IMonster> GetMonsters() => GetEntities().Where( e => e is IMonster).Cast<IMonster>();
 
-    public static void AddPlayer(string id)
+    public void AddPlayer(string id)
     {
         if (!GetFreePlayerSlotNumber(out var idPlayer)) return;
 
         var newPlayer = idPlayer switch
         {
-            0 => new Player { Id = id, Name = "mikze", PosX = 101, PosY = 100 },
-            1 => new Player { Id = id, Name = "mikze", PosX = 99 + 14 * 50, PosY = 100 },
-            2 => new Player { Id = id, Name = "mikze", PosX = 99 + 14 * 50, PosY = 99 + 13 * 50 },
-            3 => new Player { Id = id, Name = "mikze", PosX = 101, PosY = 99 + 13 * 50 },
+            0 => new Player(this) { Id = id, Name = "mikze", PosX = 101, PosY = 100 },
+            1 => new Player(this) { Id = id, Name = "mikze", PosX = 99 + 14 * 50, PosY = 100 },
+            2 => new Player(this) { Id = id, Name = "mikze", PosX = 99 + 14 * 50, PosY = 99 + 13 * 50 },
+            3 => new Player(this) { Id = id, Name = "mikze", PosX = 101, PosY = 99 + 13 * 50 },
             _ => null
         };
 
@@ -127,7 +134,7 @@ public static class Game
         AddEntities(newPlayer);
     }
 
-    private static bool GetFreePlayerSlotNumber(out int number)
+    private bool GetFreePlayerSlotNumber(out int number)
     {
         for (var i = 0; i < 4; i++)
         {
@@ -140,41 +147,41 @@ public static class Game
     }
 
 
-    public static void RemovePlayer(string id)
+    public void RemovePlayer(string id)
     {
         var player = Players.FirstOrDefault(p => p.Id == id);
         if (player != null)
         {
             player.Live = false;
-            lock (LockObject)
+            lock (_lockObject)
             {
                 _entities.Remove(player);
             }
         }
     }
 
-    public static void ChangeName(string id, string newName)
+    public void ChangeName(string id, string newName)
     {
         var player = Players.FirstOrDefault(p => p.Id == id);
         if (player != null)
             player.Name = newName;
     }
 
-    public static void ChangeSkin(string id, string newSkinName)
+    public void ChangeSkin(string id, string newSkinName)
     {
         var targetPlayer = Players.FirstOrDefault(p => p.Id == id);
         if (targetPlayer != null)
             targetPlayer.Skin = newSkinName;
     }
 
-    public static Bomb PlantBomb(double x, double y, Player owner)
+    public Bomb PlantBomb(double x, double y, Player owner)
     {
-        var bomb = new Bomb(x, y, owner);
+        var bomb = new Bomb(x, y, owner, this);
         AddEntities(bomb);
         return bomb;
     }
 
-    public static async Task RestartGame()
+    public async Task RestartGame()
     {
         RemoveEntities(typeof(Wall));
         var newMap = GenerateMap();
@@ -215,35 +222,39 @@ public static class Game
         }
     }
 
-    internal static void CreateBonus(IEntity e)
+    internal void CreateBonus(IEntity e)
     {
         var rnd = new Random();
         var result = rnd.Next(1, 4);
         if (result != 1) return;
         
-        var bonus = new Bonus() { PosX = e.PosX, PosY = e.PosY, Destructible = true };
+        var bonus = new Bonus(this) { PosX = e.PosX, PosY = e.PosY, Destructible = true };
         AddEntities(bonus);
         _hubGameService?.HubContext.Clients.All.SendAsync("SetBonus", bonus);
     }
 
-    public static void RemoveDestroyedEntities()
+    public void RemoveDestroyedEntities()
     {
-        lock (LockObject)
+        lock (_lockObject)
         {
             _entities.RemoveAll(e => e.Destroyed);
         }
     }
 
-    public static void SetHubGameService(HubGameService hubGameService)
+    public void SetHubGameService(HubGameService hubGameService)
     {
         _hubGameService = hubGameService;
     }
 
-    public static HubGameService? GetHubGameService()
+    public HubGameService? GetHubGameService()
     {
         return _hubGameService;
     }
 
-    public static Player[] GetPlayers() => Players;
-    
+    public Player[] GetPlayers() => Players;
+
+    public void Destroy()
+    {
+        throw new NotImplementedException();
+    }
 }

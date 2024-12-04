@@ -2,7 +2,7 @@ using Server.Game.Interface;
 
 namespace Server.Game.Entities;
 
-public class GhostMonster : BasicMonster
+public class GhostMonster(Game game) : BasicMonster(game)
 {
     private readonly Random _rnd = new ();
     private double _acc = 0;

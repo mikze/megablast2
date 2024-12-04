@@ -1,3 +1,5 @@
+using Server.Game;
+using Server.Hubs;
 using Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +19,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddSignalR();
+builder.Services.AddSingleton<GameManager>();
 builder.Services.AddHostedService<HubGameService>();
 
 var app = builder.Build();

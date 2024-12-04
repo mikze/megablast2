@@ -2,7 +2,7 @@ using Server.Game.Interface;
 
 namespace Server.Game.Entities;
 
-public abstract class EntityBase : IEntity
+public abstract class EntityBase(Game game) : IEntity
 {
     public string Id { get; init; } = new Guid().ToString();
     public bool Collision { get; set; }
@@ -12,6 +12,7 @@ public abstract class EntityBase : IEntity
     public int Height { get; set; }
     public bool Destroyed { get; set; }
     public bool Destructible { get; set; }
+    public Game Game { get; } = game;
 
     public virtual bool  CheckCollision(IEntity entity)
     {

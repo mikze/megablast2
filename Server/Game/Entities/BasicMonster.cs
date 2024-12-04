@@ -8,7 +8,7 @@ public class BasicMonster : EntityBase, IMonster
 {
     protected MoveDirection MoveDirection { get; set; }
 
-    public BasicMonster()
+    public BasicMonster(Game game) : base(game)
     {
         Id = Guid.NewGuid().ToString();
         Width = 36;

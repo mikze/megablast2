@@ -46,7 +46,9 @@ export class Lobby extends Scene {
     private async initializeConnection(): Promise<void> {
         await this.registerStart();
         PlayerManager.register(this);
+        await Connection.connection.invoke("JoinToGroup", "Test");
         await Connection.connection.invoke("RestartGame");
+        
         this.setPlayerNames();
         Connection.lobby = this;
         await Connection.connection.invoke("GetConfig");

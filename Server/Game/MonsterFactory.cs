@@ -2,15 +2,15 @@ using Server.Game.Entities;
 
 namespace Server.Game;
 
-public class MonsterFactory(int monsterAmount)
+public class MonsterFactory(int monsterAmount, Game game)
 {
     internal int MonsterAmount { get; set; } = monsterAmount;
 
     public void GenerateMonsters()
     {
-        Game.RemoveEntities(typeof(BasicMonster));
-        Game.RemoveEntities(typeof(GhostMonster));
-        var coords = Game.FindAllEmptyCoordinates().ToArray();
+        game.RemoveEntities(typeof(BasicMonster));
+        game.RemoveEntities(typeof(GhostMonster));
+        var coords = game.FindAllEmptyCoordinates().ToArray();
         Console.WriteLine($"Found {coords.Length} free spots");
         var rnd = new Random();
         var ghostMonster = MonsterAmount / 5;
@@ -19,13 +19,13 @@ public class MonsterFactory(int monsterAmount)
         for (var i = 0; i < normalMonsters; i++)
         {
             var r = rnd.Next(coords.Length-1);
-            Game.AddEntities( new BasicMonster() { PosX = coords[r].X, PosY = coords[r].Y });
+            game.AddEntities( new BasicMonster(game) { PosX = coords[r].X, PosY = coords[r].Y });
         }
         
         for (var i = 0; i < ghostMonster; i++)
         {
             var r = rnd.Next(coords.Length-1);
-            Game.AddEntities( new GhostMonster() { PosX = coords[r].X, PosY = coords[r].Y });
+            game.AddEntities( new GhostMonster(game) { PosX = coords[r].X, PosY = coords[r].Y });
         }
     }
 }

@@ -12,6 +12,7 @@ import { Lobby } from "../scenes/Lobby";
 import { updateConfig } from '../../storesAndReducers/configReducer';
 import { setAdmin } from '../../storesAndReducers/adminReducer';
 import  configureStore  from '../../storesAndReducers/Store'
+import { setGames } from "@/storesAndReducers/gamesReducer";
 
 interface Config {
     monsterAmount : number,
@@ -81,6 +82,12 @@ export class Connection {
         connection.on("MoveMonsters", Connection.moveMonsters)
         connection.on("GetConfig", Connection.getConfig)
         connection.on("IsAdmin", Connection.isAdmin)
+        connection.on("RunningAllGames", Connection.runningAllGames)
+    }
+
+    static runningAllGames(games : string[]) {
+        console.log("RunningAllGames", games);
+        configureStore.dispatch(setGames({games: games}));
     }
 
     static isAdmin(isAdmin: boolean) {
@@ -129,6 +136,7 @@ export class Connection {
     }
 
     private static handleConnected(players: PlayerModel[]): void {
+        console.log("Connected ", players);
         PlayerManager.UpdatePlayers(players.map(item => new PlayerModel(item.id, item.name, item.posX, item.posY, item.skin)));
     }
 

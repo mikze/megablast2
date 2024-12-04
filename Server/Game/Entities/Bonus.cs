@@ -6,7 +6,7 @@ public class Bonus : EntityBase
 {
     public int BonusType { get; set; }
 
-    public Bonus()
+    public Bonus(Game game) : base(game)
     {
         Id = Guid.NewGuid().ToString();
         BonusType = new Random().Next(1, 4);

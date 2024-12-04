@@ -15,4 +15,5 @@ public interface IEntity : IGameObject
     public bool CheckCollision(IEntity entity);
     public bool Destroyed { get; set; }
     public bool Destructible { get; set; }
+    protected Game Game { get; }
 }
