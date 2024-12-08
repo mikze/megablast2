@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.SignalR;
 using Server.Game.Interface;
+using Server.Game.Models;
 
 namespace Server.Game.Entities;
 

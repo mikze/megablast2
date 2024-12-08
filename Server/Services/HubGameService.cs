@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using Server.Game;
+using Server.Game.Models;
 using Server.Hubs;
 
 namespace Server.Services;
@@ -31,18 +32,17 @@ public class HubGameService : BackgroundService
     {
         while (true)
         {
-            foreach (var game in _gameManager.GetAllGames())
+            var games = _gameManager.GetAllGames();
+            var enumerable = games as Game.Game[] ?? games.ToArray();
+            Thread.Sleep(10);
+            foreach (var game in enumerable)
             {
                 try
                 {
                     RemoveDestroyedEntities(game);
-
+                    if (!game.Live) continue;
                     MoveLivePlayers(game);
                     MoveLiveMonster(game);
-
-                    Thread.Sleep(10);
-
-                    if (!game.Live) continue;
                     SendPlayerLocations(game);
                     SendMonstersLocations(game);
                 }
@@ -67,16 +67,16 @@ public class HubGameService : BackgroundService
     private void SendMonstersLocations(Game.Game game)
     {
         var monsters = game.GetMonsters().Where(p => p is { Destroyed: false });
-        HubContext.Clients.All.SendAsync("MoveMonsters", monsters);
+        HubContext.Clients.Group(_gameManager.GetGameName(game)).SendAsync("MoveMonsters", monsters);
     }
     
-    private void MoveLiveMonster(Game.Game game)
+    private static void MoveLiveMonster(Game.Game game)
     {
         foreach (var monster in game.GetMonsters().Where(p => p is { Destroyed: false }))
             monster.Move(MoveDirection.None);
     }
     
-    private void MoveLivePlayers(Game.Game game)
+    private static void MoveLivePlayers(Game.Game game)
     {
         foreach (var player in game.GetPlayers().Where(p =>
                      p is { Live: true, Dead: false } && p.MoveDirection != MoveDirection.None))
@@ -88,6 +88,6 @@ public class HubGameService : BackgroundService
     private void SendPlayerLocations(Game.Game game)
     {
         var playerModels = game.GetPlayers().Select(p => new PlayerModel(p)).ToArray();
-        HubContext.Clients.All.SendAsync("MovePlayer", playerModels);
+        HubContext.Clients.Group(_gameManager.GetGameName(game)).SendAsync("MovePlayer", playerModels);
     }
 }

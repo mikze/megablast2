@@ -4,6 +4,7 @@ import { Connection } from '../SignalR/Connection';
 import { PlayerManager } from './PlayerManager';
 import { receiveMessage } from '../../storesAndReducers/chatReducer'
 import  configureStore  from '../../storesAndReducers/Store'
+import { useAppSelector } from '@/hooks';
 
 const TEXT_STYLE = {
     fontFamily: 'Arial Black',
@@ -26,7 +27,7 @@ export class Lobby extends Scene {
     private camera!: Phaser.Cameras.Scene2D.Camera;
     private background!: Phaser.GameObjects.Image;
     private gameText: Phaser.GameObjects.Text[] = [];
-
+    private chosenGame : string | null = localStorage.getItem("gameName");
     constructor() {
         super('Lobby');
     }
@@ -44,9 +45,10 @@ export class Lobby extends Scene {
     }
 
     private async initializeConnection(): Promise<void> {
+        
         await this.registerStart();
         PlayerManager.register(this);
-        await Connection.connection.invoke("JoinToGroup", "Test");
+        await Connection.connection.invoke("JoinToGroup", this.chosenGame);
         await Connection.connection.invoke("RestartGame");
         
         this.setPlayerNames();

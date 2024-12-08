@@ -1,15 +1,10 @@
 using Server.Game.Entities;
 
-public class BombModel
-{
-    public BombModel(Bomb p)
-    {
-        PosX = p.PosX;
-        PosY = p.PosY;
-        Id = p.Id;
-    }
+namespace Server.Game.Models;
 
-    public double PosX { get; set; }
-    public double PosY { get; set; }
-    public string Id { get; set; }
+public class BombModel(Bomb p)
+{
+    public double PosX { get; set; } = p.PosX;
+    public double PosY { get; set; } = p.PosY;
+    public string Id { get; set; } = p.Id;
 }

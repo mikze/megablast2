@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.SignalR;
 using Server.Game;
 using Server.Game.Entities;
+using Server.Game.Models;
 
 namespace Server.Hubs;
 
@@ -128,7 +129,7 @@ public class ChatHub(GameManager gameManager) : Hub
 
     public async Task Start()
     {
-        var game = gameManager.GetGameById(1);
+        var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
         if (game.IsMasterPlayer(Context.ConnectionId))
         {
             game.Live = true;
@@ -166,21 +167,25 @@ public class ChatHub(GameManager gameManager) : Hub
             Console.WriteLine($"{Context.ConnectionId} has joined the group {groupName}.");
 
             var game = gameManager.GetGameByGroupName(groupName);
-            var players = game.GetPlayers().Where(p => p.Live);
-            var enumerable = players as Player[] ?? players.ToArray();
-            if (enumerable.Length >= 4)
+            var players = game?.GetPlayers().Where(p => p.Live);
+            if (players != null)
             {
-                await base.OnConnectedAsync();
-                await Clients.Caller.SendAsync("ServerIsFull");
-                await Clients.Caller.SendAsync("Connected", enumerable.Where(p => p.Live).ToArray(),
-                    Context.ConnectionId);
-            }
-            else
-            {
-                await base.OnConnectedAsync();
-                game.AddPlayer(Context.ConnectionId);
-                await Clients.Group(gameManager.GetGameName(game)).SendAsync("Connected",
-                    game.GetPlayers().Where(p => p.Live).ToArray(), Context.ConnectionId);
+                var enumerable = players as Player[] ?? players.ToArray();
+                if (enumerable.Length >= 4)
+                {
+                    await base.OnConnectedAsync();
+                    await Clients.Caller.SendAsync("ServerIsFull");
+                    await Clients.Caller.SendAsync("Connected", enumerable.Where(p => p.Live).ToArray(),
+                        Context.ConnectionId);
+                }
+                else
+                {
+                    await base.OnConnectedAsync();
+                    game?.AddPlayer(Context.ConnectionId);
+                    if (game != null)
+                        await Clients.Group(gameManager.GetGameName(game)).SendAsync("Connected",
+                            game.GetPlayers().Where(p => p.Live).ToArray(), Context.ConnectionId);
+                }
             }
         }
     }

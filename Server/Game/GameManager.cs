@@ -37,7 +37,7 @@ public class GameManager
         if (oldGame is not null) throw new Exception($"Game {groupName} already is running");
         if (_hubGameService == null) throw new Exception("Hub game service is null");
         
-        var gameContext = new GameContext(new Game(_hubGameService), groupName);
+        var gameContext = new GameContext(new Game(_hubGameService, groupName), groupName);
         var id = Games.Count + 1;
         gameContext.Game.Id = id;
         Games.Add(gameContext);

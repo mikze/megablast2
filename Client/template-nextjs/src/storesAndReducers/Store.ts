@@ -3,13 +3,15 @@ import chatReducer from './chatReducer'
 import configReducer from './configReducer';
 import adminReducer from './adminReducer'
 import gamesReducer from './gamesReducer';
+import chosenGameReducer from './chosenGameReducer';
 
 const store = configureStore({
     reducer: {
         chat: chatReducer,
         config: configReducer,
         admin: adminReducer,
-        games: gamesReducer
+        games: gamesReducer,
+        chosenGame: chosenGameReducer
     },
 })
 

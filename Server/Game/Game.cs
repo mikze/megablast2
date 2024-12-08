@@ -32,17 +32,19 @@ public class Game
     public int BombDelay { get; private set; } = 2000;
     private readonly MonsterFactory _monsterFactory;
     private readonly PlayerHandler _playerHandler = new ();
+    private readonly string _groupName;
 
-    public Game(HubGameService hubGameService)
+    public Game(HubGameService hubGameService, string groupName)
     {
+        _groupName = groupName;
         _hubGameService = hubGameService;
         _monsterFactory = new MonsterFactory(5, this);
         Players =
         [
-            new (this){ Id = string.Empty, Live = false},
-            new (this){ Id = string.Empty, Live = false},
-            new (this){ Id = string.Empty, Live = false},
-            new (this){ Id = string.Empty, Live = false}
+            new Player(this){ Id = string.Empty, Live = false},
+            new Player(this){ Id = string.Empty, Live = false},
+            new Player(this){ Id = string.Empty, Live = false},
+            new Player(this){ Id = string.Empty, Live = false}
         ];
     }
 
@@ -217,9 +219,14 @@ public class Game
 
         if (_hubGameService != null)
         {
-            await _hubGameService.HubContext.Clients.All.SendAsync("Connected", players);
-            await _hubGameService.HubContext.Clients.All.SendAsync("GetMap", newMap);
+            await SendToAll("Connected", players);
+            await SendToAll("GetMap", newMap);
         }
+    }
+
+    private async Task SendToAll(string methodName, object args)
+    {
+       await _hubGameService?.HubContext.Clients.Group(_groupName).SendAsync(methodName, args)!; 
     }
 
     internal void CreateBonus(IEntity e)
@@ -230,7 +237,7 @@ public class Game
         
         var bonus = new Bonus(this) { PosX = e.PosX, PosY = e.PosY, Destructible = true };
         AddEntities(bonus);
-        _hubGameService?.HubContext.Clients.All.SendAsync("SetBonus", bonus);
+        _ = SendToAll("SetBonus", bonus);
     }
 
     public void RemoveDestroyedEntities()

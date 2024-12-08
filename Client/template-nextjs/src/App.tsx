@@ -19,7 +19,7 @@ function App() {
     const [gameName, setGameName] = useState("");
     return (
         <Provider store={store}>
-        <>mian
+        <>Name of new game
             <input value={gameName} onChange={(e) => setGameName(e.target.value)}/>
             <button className="button" onClick={() => CreateGame(gameName)}>Create game!</button>
             <GameList/>
