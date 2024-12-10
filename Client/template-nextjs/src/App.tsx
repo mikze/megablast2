@@ -5,25 +5,20 @@ import { useAppSelector } from "./hooks";
 import { Provider } from "react-redux";
 import store from "./storesAndReducers/Store";
 import GameList from "./GameList";
+import GameCreator from "./GameCreator";
 
 
 function App() {
     Connection.CreateConnection();
-    
-    const CreateGame = (gameName : string) =>
-        Connection.InvokeConnection("CreateGame", gameName);
-    
-    const GetGames = () =>
-        Connection.InvokeConnection("GetRunningAllGames");
 
-    const [gameName, setGameName] = useState("");
+    const [showCreator, setShowCreator] = useState(false);
     return (
         <Provider store={store}>
-        <>Name of new game
-            <input value={gameName} onChange={(e) => setGameName(e.target.value)}/>
-            <button className="button" onClick={() => CreateGame(gameName)}>Create game!</button>
-            <GameList/>
-        </>
+            <>
+                <button className="button" onClick={() => setShowCreator(!showCreator)}>Create game!</button>
+                {showCreator && <GameCreator/>}
+                <GameList/>
+            </>
         </Provider>
     )
 }

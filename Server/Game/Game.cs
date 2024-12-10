@@ -247,6 +247,14 @@ public class Game
             _entities.RemoveAll(e => e.Destroyed);
         }
     }
+    
+    public void RemoveEntities()
+    {
+        lock (_lockObject)
+        {
+            _entities.Clear();
+        }
+    }
 
     public void SetHubGameService(HubGameService hubGameService)
     {
@@ -262,6 +270,6 @@ public class Game
 
     public void Destroy()
     {
-        throw new NotImplementedException();
+        RemoveEntities();
     }
 }

@@ -8,6 +8,8 @@ import { Provider } from 'react-redux'
 import ChangeName from '.././ChangeName';
 import Chat from '.././Chat';
 import Config from '.././Config';
+import { Connection } from '@/game/SignalR/Connection';
+import router from 'next/router';
 
 interface Cfg {
     monsterAmount : number,
@@ -27,6 +29,16 @@ function Game() {
             let scene = phaserRef.current.scene as Preloader;
             scene.changeScene();
         }
+    }
+    
+    const backToServerList = () =>  {
+        new Promise((r,c) =>
+        {
+            r(Connection.InvokeConnection("BackToServerList")); 
+            localStorage.setItem("gameName", ""); })
+            .then(() => new Promise((r,c) => 
+                r(setTimeout( () => router.push('/').then(() => router.reload()), 100))));
+        ;
     }
 
     const backToLobby = () => {
@@ -116,6 +128,11 @@ function Game() {
                         {isVisibleStart && (<div>
                             <button className="button" onClick={changeScene}>Start</button>
                         </div>)}
+                        {isVisibleStart && (<div>
+                            <button className="button" onClick={backToServerList}>Back to server list</button>
+                        </div>)}
+                        
+                        
                     </div>
 
                 </div>

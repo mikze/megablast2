@@ -131,8 +131,18 @@ export class Preloader extends Scene {
         this.scene.start('Lobby');
       })
   }
-
+  
   loadAnims() {
+      
+            this.anims.create({
+                key: "monster_walk",
+                frames: this.anims.generateFrameNumbers("monster", {
+                    frames: [0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13],
+                }),
+                frameRate: 10,
+                repeat: -1,
+            });
+            
     this.anims.create({
       key: "playerSprite_walkRight",
       frames: this.anims.generateFrameNumbers("playerSprite", {

@@ -19,6 +19,7 @@ public class GameManager
     }
     private List<GameContext> Games { get; } = [];
 
+    public void DestroyGame(Game game) => DestroyGame(GetGameName(game));
     public void DestroyGame(string gameName)
     {
         var game = GetGameByGroupName(gameName);

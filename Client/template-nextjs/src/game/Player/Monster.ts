@@ -7,7 +7,7 @@ export class Monster
     posY : number
     scene: Scene
     destructible : Boolean
-    sprite : Phaser.GameObjects.Image
+    sprite : Phaser.GameObjects.Sprite
 
     constructor(id : string ,x : number, y : number, scene: Scene) 
     {
@@ -15,7 +15,8 @@ export class Monster
         this.posX = x;
         this.posY = y;
         this.scene = scene;
-        this.sprite = scene.add.image(x + 8, y + 8, "monster")
+        this.sprite = scene.add.sprite(x + 8, y + 8, "monster").setScale(1)
+        
     }
     
     public Move(x:number, y:number)
@@ -24,5 +25,6 @@ export class Monster
         this.posY = y;
         this.sprite.x = x;
         this.sprite.y = y;
+        this.sprite.play({ key: "monster_walk", repeat: 1 }, true);
     }
 }

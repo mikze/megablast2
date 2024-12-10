@@ -139,11 +139,32 @@ public class ChatHub(GameManager gameManager) : Hub
         }
     }
 
-    public Task CreateGame(string gameName)
+    public async Task CreateGame(string gameName)
     {
-        Console.WriteLine("Create game");
-        gameManager.CreateGame(gameName);
-        return Task.CompletedTask;
+        if (!string.IsNullOrWhiteSpace(gameName))
+        {
+            Console.WriteLine("Create game");
+            gameManager.CreateGame(gameName);
+            await Clients.Caller.SendAsync("JoinToGame", gameName);
+        }
+    }
+    
+    public Task BackToServerList()
+    {
+        try
+        {
+            var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
+            if (game.IsMasterPlayer(Context.ConnectionId))
+                gameManager.DestroyGame(game);
+            
+            return Task.CompletedTask;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+        
     }
     
     public Task CloseGame(string gameName)

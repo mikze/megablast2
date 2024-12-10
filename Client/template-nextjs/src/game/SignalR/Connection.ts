@@ -13,6 +13,7 @@ import { updateConfig } from '../../storesAndReducers/configReducer';
 import { setAdmin } from '../../storesAndReducers/adminReducer';
 import  configureStore  from '../../storesAndReducers/Store'
 import { setGames } from "@/storesAndReducers/gamesReducer";
+import router from "next/router";
 
 interface Config {
     monsterAmount : number,
@@ -83,6 +84,18 @@ export class Connection {
         connection.on("GetConfig", Connection.getConfig)
         connection.on("IsAdmin", Connection.isAdmin)
         connection.on("RunningAllGames", Connection.runningAllGames)
+        connection.on("JoinToGame", Connection.joinToGame)
+        connection.on("GoToServerList", Connection.goToServerList)
+    }
+
+    static goToServerList() {
+        new Promise((r,c) =>{  r(localStorage.setItem("gameName", "")); })
+            .then(() => router.push('/'));
+    }
+
+    static joinToGame(gameName: string) {
+        new Promise((r,c) =>{  r(localStorage.setItem("gameName", gameName)); })
+            .then(() => router.push('/RunGame'));
     }
 
     static runningAllGames(games : string[]) {
