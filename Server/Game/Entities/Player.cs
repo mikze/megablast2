@@ -95,9 +95,15 @@ public class Player : EntityBase
     {
         Lives -= amount;
         if (LifeAmount() > 0) return;
+        
         Console.WriteLine($"Killed player {Id}  {Name}");
         Dead = true;
         Game.GetHubGameService()?.HubContext.Clients.All.SendAsync("KillPlayer", Id);
+        _ = Game.SendToAll("ReceiveMessage","","GAME", $"{Name} is killed"); //await Clients.Group(gameManager.GetGameName(game)).SendAsync("ReceiveMessage",Context.ConnectionId, player.Name, message);
+        if (Game.GetPlayers().Count(p => p is { Dead: false, Live: true })  > 1) return;
+        
+        Game.Live = false;
+        _ = Game.SendToAll("BackToLobby", null);
     }
     
     public void AddLife(int amount = 1)

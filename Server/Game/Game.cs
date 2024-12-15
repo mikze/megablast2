@@ -233,9 +233,19 @@ public class Game
         }
     }
 
-    private async Task SendToAll(string methodName, object args)
+    public async Task SendToAll(string methodName, object? args)
     {
        await _hubGameService?.HubContext.Clients.Group(_groupName).SendAsync(methodName, args)!; 
+    }
+    
+    public async Task SendToAll(string methodName, object? args, object? args2)
+    {
+        await _hubGameService?.HubContext.Clients.Group(_groupName).SendAsync(methodName, args, args2)!; 
+    }
+    
+    public async Task SendToAll(string methodName, object? args, object? args2, object? args3)
+    {
+        await _hubGameService?.HubContext.Clients.Group(_groupName).SendAsync(methodName, args, args2, args3)!; 
     }
 
     internal void CreateBonus(IEntity e)
