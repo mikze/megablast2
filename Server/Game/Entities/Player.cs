@@ -18,6 +18,7 @@ public class Player : EntityBase
     public int BombDelay { get; set; }
 
     private int _fireSize = 3;
+    public int MaxBullets { get; set; } = 2;
 
     public Player(Game game) : base(game)
     {
@@ -33,6 +34,9 @@ public class Player : EntityBase
         
         if(coll && entity is Bonus)
             entity.Destroyed = true;
+        
+        // if(coll && entity is Bullet && Bullet)
+        //     entity.Destroyed = true;
         
         return coll;
     }
@@ -63,6 +67,9 @@ public class Player : EntityBase
         {
             if (entity.CheckCollision(this))
             {
+                if (entity is Bullet bullet && bullet.Owner == this)
+                        break;
+                
                 if (entity is Bomb bomb && bomb.Owner == this)
                     if(bomb.Touched)
                         break;

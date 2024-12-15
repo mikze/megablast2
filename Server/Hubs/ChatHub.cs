@@ -101,6 +101,16 @@ public class ChatHub(GameManager gameManager) : Hub
         Clients.Group(gameManager.GetGameName(game)).SendAsync("NameChanged", Context.ConnectionId, newName);
     }
 
+    public void CreateBullet(double sin, double cos)
+    {
+        var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
+        var player = game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
+        if (player is null) return;
+        var newBullet = game.CreateBullet(player, sin, cos);
+        if(newBullet != null)
+            Clients.Group(gameManager.GetGameName(game)).SendAsync("BulletCreated", newBullet);
+    }
+
     public void ChangeSkin(string newSkinName)
     {
         var game = gameManager.GetGameByConnectionId(Context.ConnectionId);

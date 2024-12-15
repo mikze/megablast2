@@ -43,6 +43,7 @@ public class HubGameService : BackgroundService
                     if (!game.Live) continue;
                     MoveLivePlayers(game);
                     MoveLiveMonster(game);
+                    MoveLiveBullets(game);
                     SendPlayerLocations(game);
                     SendMonstersLocations(game);
                 }
@@ -66,13 +67,18 @@ public class HubGameService : BackgroundService
     
     private void SendMonstersLocations(Game.Game game)
     {
-        var monsters = game.GetMonsters().Where(p => p is { Destroyed: false });
+        var monsters = game.GetMoveable().Where(p => p is { Destroyed: false });
         HubContext.Clients.Group(_gameManager.GetGameName(game)).SendAsync("MoveMonsters", monsters);
     }
-    
     private static void MoveLiveMonster(Game.Game game)
     {
         foreach (var monster in game.GetMonsters().Where(p => p is { Destroyed: false }))
+            monster.Move(MoveDirection.None);
+    }
+    
+    private static void MoveLiveBullets(Game.Game game)
+    {
+        foreach (var monster in game.GetBullets().Where(p => p is { Destroyed: false }))
             monster.Move(MoveDirection.None);
     }
     

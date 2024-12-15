@@ -109,6 +109,14 @@ public class Game
                 _entities.RemoveAll(e => e.GetType() == type);
         }
     }
+    
+    public void RemoveEntities<T>()
+    {
+        lock (_lockObject)
+        { 
+            _entities.RemoveAll(e => e is T);
+        }
+    }
 
     public List<(double X, double Y)> FindAllEmptyCoordinates() => MapHandler.GetEmptySpaces();
 
@@ -117,6 +125,7 @@ public class Game
     private void GenerateMonsters() => _monsterFactory.GenerateMonsters();
     
     public IEnumerable<IMonster> GetMonsters() => GetEntities().Where( e => e is IMonster).Cast<IMonster>();
+    public IEnumerable<IMoveable> GetMoveable() => GetEntities().Where( e => e is IMoveable).Cast<IMoveable>();
 
     public void AddPlayer(string id)
     {
@@ -272,4 +281,16 @@ public class Game
     {
         RemoveEntities();
     }
+
+    public Bullet? CreateBullet(Player owner, double sin, double cos)
+    {
+        if (!(GetBullets()?.Where(b => b.Owner == owner).Count() < owner.MaxBullets)) return null;
+        
+        var bullet = new Bullet(this, owner, sin, cos);
+        AddEntities(bullet);
+        return bullet;
+
+    }
+
+    public IEnumerable<IBullet> GetBullets() => GetEntities().Where( e => e is IBullet).Cast<IBullet>();
 }

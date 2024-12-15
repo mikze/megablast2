@@ -1,6 +1,5 @@
 namespace Server.Game.Interface;
 
-public interface IMonster : IEntity
+public interface IMonster : IMoveable
 {
-    public void Move(MoveDirection direction);
 }

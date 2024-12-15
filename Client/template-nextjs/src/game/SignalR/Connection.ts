@@ -14,6 +14,7 @@ import { setAdmin } from '../../storesAndReducers/adminReducer';
 import  configureStore  from '../../storesAndReducers/Store'
 import { setGames } from "@/storesAndReducers/gamesReducer";
 import router from "next/router";
+import { Bullet } from "../Player/Bullet";
 
 interface Config {
     monsterAmount : number,
@@ -86,6 +87,12 @@ export class Connection {
         connection.on("RunningAllGames", Connection.runningAllGames)
         connection.on("JoinToGame", Connection.joinToGame)
         connection.on("GoToServerList", Connection.goToServerList)
+        connection.on("BulletCreated", Connection.bulletCreated)
+    }
+
+    static bulletCreated(bullet: Bullet) {
+        if (Connection.gameLevel !== undefined)
+            Connection.gameLevel.addBullet(bullet)
     }
 
     static goToServerList() {
@@ -119,7 +126,7 @@ export class Connection {
 
     static moveMonsters(monsters: [Monster]) {
         if (Connection.gameLevel !== undefined) {
-            Connection.gameLevel.moveMonsters(monsters);
+            Connection.gameLevel.moveEntities(monsters);
         }
     }
 

@@ -11,13 +11,14 @@ import { BonusModel } from '../Player/BonusModel';
 import { BombModel } from '../Player/BombModel';
 import { Bomb } from '../Player/Bomb';
 import { Monster } from '../Player/Monster';
+import { Bullet } from '../Player/Bullet';
 
 
 export class GameLevel extends Scene {
-    moveMonsters(monsters: [Monster]) {
-        monsters.map(m => {
-            const monster =  this.entities.find( e=> e.id === m.id) as Monster;
-            monster.Move(m.posX, m.posY);
+    moveEntities(entities: [Monster]) {
+        entities.map(m => {
+            const entity =  this.entities.find( e=> e.id === m.id) as Monster;
+            entity.Move(m.posX, m.posY);
             }
         );
     }
@@ -35,6 +36,7 @@ export class GameLevel extends Scene {
     entities: IEntity[];
     bonuses: Bonus[];
     players: Player[];
+    line : Phaser.GameObjects.Line
 
     constructor() {
         super('GameLevel');
@@ -45,6 +47,10 @@ export class GameLevel extends Scene {
 
     setMonsters(monsters: [Monster]) {
         monsters.map(m => this.entities.push( new Monster(m.id, m.posX, m.posY, this)));
+    }
+
+    addBullet(bullet: Bullet) {
+        this.entities.push( new Bullet(bullet.id, bullet.posX, bullet.posY, this));
     }
     
     public RefreshPlayers(): void {
@@ -201,6 +207,32 @@ export class GameLevel extends Scene {
         this.keyD = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
         this.keyW = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
         this.keySpace = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        this.input.on('pointerdown', () => {
+            if(GameLevel.playerId !== null && this.getPlayerById(GameLevel.playerId) !== undefined) {
+                let player = this.getPlayerById(GameLevel.playerId);
+                if(player !== undefined) {
+                    let oX = player.x + 30;
+                    let oY = player.y + 60;
+                    let Y = this.input.mousePointer.position.y + player.y - 330;
+                    let X = this.input.mousePointer.position.x + player.x - 490;
+                    let a = Math.abs(Y - oY);
+                    let b = Math.abs(X - oX);
+                    let aPow = a*a;
+                    let bPow = b*b;
+                    let c = Math.sqrt((aPow + bPow));
+                    let sin = a/c;
+                    let cos = b/c;
+                    if(oX > X)
+                        cos = -cos;
+                    if(oY > Y)
+                        sin = -sin;
+                    //console.log('sin', sin);
+                    //console.log('cos', cos);
+                    Connection.connection.invoke("CreateBullet", sin, cos);
+                }
+            }
+        });
+        this.line = this.add.line(0,0,150,100,200,200,0xff0000);
         Connection.connection.invoke("GetMonsters");
         EventBus.emit('current-scene-ready', this);
     }
@@ -209,5 +241,11 @@ export class GameLevel extends Scene {
         if (Connection.connection.state === HubConnectionState.Connected) {
             this.handleKeyInputs();
         }
+        if(GameLevel.playerId !== null && this.getPlayerById(GameLevel.playerId) !== undefined) {
+            let player = this.getPlayerById(GameLevel.playerId);
+            if(player !== undefined)
+                this.line.setTo(this.input.mousePointer.position.x + player.x - 490, this.input.mousePointer.position.y + player.y -330, player.x + 30, player.y + 60);
+        }
+        this.line
     }
 }
