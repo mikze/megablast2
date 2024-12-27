@@ -8,6 +8,7 @@ export class Monster
     scene: Scene
     destructible : Boolean
     sprite : Phaser.GameObjects.Sprite
+    Polly: Phaser.Geom.Polygon
 
     constructor(id : string ,x : number, y : number, scene: Scene) 
     {

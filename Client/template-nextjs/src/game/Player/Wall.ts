@@ -5,6 +5,7 @@ export class Wall
     posY : number
     destructible : Boolean
     sprite : Phaser.GameObjects.Image
+    Polly: Phaser.Geom.Polygon
 
     constructor(x : number, y : number, Destructible:  Boolean) 
     {

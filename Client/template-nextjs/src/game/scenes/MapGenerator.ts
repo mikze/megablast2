@@ -9,7 +9,22 @@ export class MapGenerator {
     {
         MapGenerator.map = map;
     }
-
+    
+    static GetPolygons()
+    {
+        let polygons : Phaser.Geom.Polygon[];
+        polygons = [];
+        MapGenerator.map.forEach(w => {
+                let posX = w.posX - 25;
+                let posY = w.posY - 25;
+                w.Polly = new Phaser.Geom.Polygon([posX, posY, posX, posY + 50, posX + 50, posY + 50, posX + 50, posY]);
+                // @ts-ignore
+                w.Polly.id = 1337;
+                polygons.push(w.Polly);
+            }
+        )
+        return polygons;
+    }
     static GenerateMap(gameLevel :GameLevel) {
 
         MapGenerator.mapDic = {};
@@ -33,7 +48,7 @@ export class MapGenerator {
                 else
                     wall.sprite = gameLevel.add.image(wall.posX, wall.posY, MapGenerator.mapDic[4].sheetName).setScale(1.2);
 
-                    gameLevel.entities.push(wall);
+                    gameLevel.entities.push(wall as Wall);
             })
     }
 }

@@ -5,4 +5,5 @@ interface IEntity
     posY : number
     destructible : Boolean
     sprite : Phaser.GameObjects.Image
+    Polly: Phaser.Geom.Polygon
 }

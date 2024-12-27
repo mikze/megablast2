@@ -8,6 +8,7 @@ export class Bullet
     scene: Scene
     destructible : Boolean
     sprite : Phaser.GameObjects.Image
+    Polly: Phaser.Geom.Polygon
 
     constructor(id : string ,x : number, y : number, scene: Scene)
     {

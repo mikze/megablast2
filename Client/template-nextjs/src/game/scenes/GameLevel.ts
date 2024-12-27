@@ -12,6 +12,7 @@ import { BombModel } from '../Player/BombModel';
 import { Bomb } from '../Player/Bomb';
 import { Monster } from '../Player/Monster';
 import { Bullet } from '../Player/Bullet';
+import { Wall } from '../Player/Wall';
 
 
 export class GameLevel extends Scene {
@@ -30,6 +31,7 @@ export class GameLevel extends Scene {
     keyS: Phaser.Input.Keyboard.Key | undefined;
     keyD: Phaser.Input.Keyboard.Key | undefined;
     keyW: Phaser.Input.Keyboard.Key | undefined;
+    keyO: Phaser.Input.Keyboard.Key | undefined;
     keySpace: Phaser.Input.Keyboard.Key | undefined;
     static playerId: string | null;
     cameraSet: boolean;
@@ -75,6 +77,12 @@ export class GameLevel extends Scene {
 
     private destroyEntity(entity: IEntity) {
         entity.sprite.destroy();
+        if(entity !== undefined && entity.Polly !== null) {
+            entity.Polly.setTo([0,0])
+            // @ts-ignore
+            console.log(entity.Polly.id);
+        }
+        
         if ((entity as Bonus)?.bonusType === 3) this.sound.play("1up");
         const index = this.entities.indexOf(entity);
         if (index > -1) this.entities.splice(index, 1);
@@ -122,7 +130,9 @@ export class GameLevel extends Scene {
 
     removeEntity(id: string) {
         const entity = this.entities.find(e => e.id === id);
-        if (entity) this.destroyEntity(entity);
+        if (entity) {
+            this.destroyEntity(entity);
+        }
     }
 
     killPlayer(id: string) {
@@ -206,6 +216,7 @@ export class GameLevel extends Scene {
         this.keyS = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
         this.keyD = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
         this.keyW = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
+        this.keyO = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.O);
         this.keySpace = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         this.input.on('pointerdown', () => {
             if(GameLevel.playerId !== null && this.getPlayerById(GameLevel.playerId) !== undefined) {
@@ -226,8 +237,7 @@ export class GameLevel extends Scene {
                         cos = -cos;
                     if(oY > Y)
                         sin = -sin;
-                    //console.log('sin', sin);
-                    //console.log('cos', cos);
+
                     Connection.connection.invoke("CreateBullet", sin, cos);
                 }
             }
@@ -243,8 +253,13 @@ export class GameLevel extends Scene {
         }
         if(GameLevel.playerId !== null && this.getPlayerById(GameLevel.playerId) !== undefined) {
             let player = this.getPlayerById(GameLevel.playerId);
-            if(player !== undefined)
-                this.line.setTo(this.input.mousePointer.position.x + player.x - 490, this.input.mousePointer.position.y + player.y -330, player.x + 30, player.y + 60);
+            if(player !== undefined) {
+                this.line.setTo(this.input.mousePointer.position.x + player.x - 490, this.input.mousePointer.position.y + player.y - 330, player.x + 30, player.y + 60);
+                if(this.keyO?.isDown) {
+                    player.angle += 0.02;
+                }
+                player.Update();
+            }
         }
         this.line
     }

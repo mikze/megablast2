@@ -9,7 +9,7 @@ public class Bonus : EntityBase
     public Bonus(Game game) : base(game)
     {
         Id = Guid.NewGuid().ToString();
-        BonusType = new Random().Next(1, 4);
+        BonusType = new Random().Next(1, 5);
         Width = 32;
         Height = 32;
         Collision = true;

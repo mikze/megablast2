@@ -16,7 +16,7 @@ export class Bonus
     destructible : Boolean
     sprite : Phaser.GameObjects.Image
     bonusType : number
-
+    Polly: Phaser.Geom.Polygon
     constructor(id : string ,x : number, y : number, bonusType : number, scene: Scene) 
     {
         this.id = id;
