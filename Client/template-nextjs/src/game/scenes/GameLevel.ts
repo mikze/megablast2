@@ -31,7 +31,6 @@ export class GameLevel extends Scene {
     keyS: Phaser.Input.Keyboard.Key | undefined;
     keyD: Phaser.Input.Keyboard.Key | undefined;
     keyW: Phaser.Input.Keyboard.Key | undefined;
-    keyO: Phaser.Input.Keyboard.Key | undefined;
     keySpace: Phaser.Input.Keyboard.Key | undefined;
     static playerId: string | null;
     cameraSet: boolean;
@@ -67,11 +66,11 @@ export class GameLevel extends Scene {
     }
 
     private handleKeyInputs() {
-        if (this.keyA?.isDown) this.moveLeft();
-        if (this.keyD?.isDown) this.moveRight();
+        if (this.keyA?.isDown) this.changeAngle();
+        if (this.keyD?.isDown) this.changeAngle();
         if (this.keyS?.isDown) this.moveDown();
         if (this.keyW?.isDown) this.moveUp();
-        if (this.keyW?.isUp && this.keyS?.isUp && this.keyD?.isUp && this.keyA?.isUp) this.moveStop();
+        if (this.keyW?.isUp && this.keyS?.isUp) this.moveStop();
         if (this.keySpace && Phaser.Input.Keyboard.JustDown(this.keySpace)) this.plantBomb();
     }
 
@@ -106,6 +105,15 @@ export class GameLevel extends Scene {
 
     moveLeft() {
         this.invokeConnection("MovePlayer", 1);
+    }
+
+    changeAngle() {
+        if(GameLevel.playerId !== null && this.getPlayerById(GameLevel.playerId) !== undefined) {
+            let player = this.getPlayerById(GameLevel.playerId);
+            if (player !== undefined) {
+                this.invokeConnection("ChangeAngle", player.angle);
+            }
+        }
     }
 
     moveUp() {
@@ -157,10 +165,10 @@ export class GameLevel extends Scene {
     recMovePlayer(x: number, y: number, id: string) {
         const player = this.getPlayerById(id);
         player?.Move(x, y);
-        if (GameLevel.playerId === id && player && !this.cameraSet) {
-            this.camera.startFollow(player);
-            this.cameraSet = true;
-        }
+        // if (GameLevel.playerId === id && player && !this.cameraSet) {
+        //     this.camera.startFollow(player);
+        //     this.cameraSet = true;
+        // }
     }
 
     nameChanged(newName: string, id: string) {
@@ -216,7 +224,6 @@ export class GameLevel extends Scene {
         this.keyS = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
         this.keyD = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
         this.keyW = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
-        this.keyO = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.O);
         this.keySpace = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         this.input.on('pointerdown', () => {
             if(GameLevel.playerId !== null && this.getPlayerById(GameLevel.playerId) !== undefined) {
@@ -255,8 +262,11 @@ export class GameLevel extends Scene {
             let player = this.getPlayerById(GameLevel.playerId);
             if(player !== undefined) {
                 this.line.setTo(this.input.mousePointer.position.x + player.x - 490, this.input.mousePointer.position.y + player.y - 330, player.x + 30, player.y + 60);
-                if(this.keyO?.isDown) {
-                    player.angle += 0.02;
+                if(this.keyD?.isDown) {
+                    player.angle += 0.06;
+                }
+                if(this.keyA?.isDown) {
+                    player.angle -= 0.06;
                 }
                 player.Update();
             }

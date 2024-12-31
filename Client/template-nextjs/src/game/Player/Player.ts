@@ -15,6 +15,7 @@ class RayCaster extends Phaser.Geom.Triangle{
     objects: Phaser.Geom.Polygon[]
     graphics: Phaser.GameObjects.Graphics
     heading : Phaser.Math.Vector2
+    images: Phaser.GameObjects.Image[]
     
     constructor(scene: Scene, x: number, y: number, objects: Phaser.Geom.Polygon[]) {
         super(length, 0, -length, -length, -length, length);
@@ -28,6 +29,7 @@ class RayCaster extends Phaser.Geom.Triangle{
         this.debug = true;
         this.graphics = this.scene.add.graphics();
         this.heading = new Phaser.Math.Vector2(1,0); // unit vector facing heading
+        this.images = [];
     }
 
     setCone(fov = Math.PI / 4) {
@@ -38,6 +40,7 @@ class RayCaster extends Phaser.Geom.Triangle{
         this.x = x;
         this.y = y;
         this.angle = angle;
+        this.heading.setAngle(angle);
     }
 
     cast() {
@@ -46,7 +49,7 @@ class RayCaster extends Phaser.Geom.Triangle{
 
     castCone() {
         let view = [];
-        for (let i = this.angle-this.fov/2; i < this.angle + this.fov/2; i += this.fov / 150 ) // default number of rays set to 30
+        for (let i = this.angle-this.fov/2; i < this.angle + this.fov/2; i += this.fov / 150 ) // rays def 30
         {
             view.push(this.castRay(i))
         };
@@ -76,13 +79,36 @@ class RayCaster extends Phaser.Geom.Triangle{
 
     drawView(view: Phaser.Math.Vector4[]) {
         const sliceWidth = 500/view.length;
+        this.images.forEach(i => i.destroy());
+        this.images = [];
+        const image1 = this.scene.add.image(50 * sliceWidth,(500) / 2, 'destructiveWall');
+        // @ts-ignore
+        image1.posX =650;
+        // @ts-ignore
+        image1.posY = 200;
         view.forEach((vec, i) => {
             if (vec !== null) {
                 const ray = new Phaser.Math.Vector2(vec.x - this.x, vec.y - this.y);
                 const d = vec.z;
-                const h = 25000 / ray.dot(this.heading); // 25,000 is arbitrary     
-                const b = (Math.max(400 - d, 0)) / 600; // 400 is arbitrary
-                this.graphics.fillStyle(0x00ff11,b).fillRect(100 +i * sliceWidth,(100-h) / 2, sliceWidth, h);
+                const h = 550 / ray.dot(this.heading); // 25,000     
+                const b = (Math.max(900 - d, 0)) / 400; // 400
+
+                
+                const image = this.scene.add.image(100 +i * sliceWidth,(100-h) / 2, 'dude');//destructiveWall
+                image.scaleY = h;
+                image.scaleX = sliceWidth;
+
+                // @ts-ignore
+                const xLen = (image1.posX - this.x)/100;
+                // @ts-ignore
+                const yLen = (image1.posY - this.y)/100;
+                const c = Math.sqrt( Math.pow(yLen, 2) + Math.pow(xLen, 2));
+                image1.scaleY = 2/c;
+                image1.scaleX = 2/c;
+                image1.setDepth(1);
+                image.setDepth(1/b);
+                this.images.push(image);
+                this.images.push(image1);
             }
         })
     }

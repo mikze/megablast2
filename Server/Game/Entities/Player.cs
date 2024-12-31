@@ -19,6 +19,10 @@ public class Player : EntityBase
 
     private int _fireSize = 3;
     public int MaxBullets { get; set; } = 2;
+    
+    private double _cosA;
+    private double _sinA;
+    private double _angle;
 
     public Player(Game game) : base(game)
     {
@@ -41,6 +45,10 @@ public class Player : EntityBase
         return coll;
     }
 
+    public void SetAngle(double angle)
+    {
+        _angle = angle;
+    }
     public void Move(MoveDirection moveDirection)
     {
         if (Dead || !Game.Live) return;
@@ -49,19 +57,40 @@ public class Player : EntityBase
 
         switch (moveDirection)
         {
-            case MoveDirection.Right:
-                PosX += Speed;
-                break;
-            case MoveDirection.Left:
-                PosX -= Speed;
-                break;
             case MoveDirection.Up:
-                PosY -= Speed;
+                PosX += Math.Cos(_angle) * Speed;
+                PosY += Math.Sin(_angle) * Speed;
                 break;
             case MoveDirection.Down:
-                PosY += Speed;
+                PosX -= Math.Cos(_angle) * Speed;
+                PosY -= Math.Sin(_angle) * Speed;
+                break;
+            case MoveDirection.None:
+            case MoveDirection.Right:
+            case MoveDirection.Left:
+            default:
                 break;
         }
+        
+        // switch (moveDirection)
+        // {
+        //     case MoveDirection.Right:
+        //         PosX += Speed;
+        //         break;
+        //     case MoveDirection.Left:
+        //         PosX -= Speed;
+        //         break;
+        //     case MoveDirection.Up:
+        //         PosY -= Speed;
+        //         break;
+        //     case MoveDirection.Down:
+        //         PosY += Speed;
+        //         break;
+        //     case MoveDirection.None:
+        //         break;
+        //     default:
+        //         throw new ArgumentOutOfRangeException(nameof(moveDirection), moveDirection, null);
+        // }
 
         foreach (var entity in Game.GetEntities().Where(e => e != this && e.Collision))
         {

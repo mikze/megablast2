@@ -75,7 +75,15 @@ public class ChatHub(GameManager gameManager) : Hub
         if (player is { Moved: false })
             player.MoveDirection = (MoveDirection)moveDirection;
     }
-
+    
+    public void ChangeAngle(double angle)
+    {
+        var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
+        var player = game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
+        if (player is { Moved: false })
+            player.SetAngle(angle);
+    }
+//ChangeAngle
     public async Task PlantBomb()
     {
         var game = gameManager.GetGameByConnectionId(Context.ConnectionId);

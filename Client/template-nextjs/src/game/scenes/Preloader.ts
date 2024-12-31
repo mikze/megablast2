@@ -27,6 +27,27 @@ export class Preloader extends Scene {
 
   preload() {
 
+      const dudeData = [
+          '7',
+          '3',
+          '3',
+          '3',
+          '3',
+          '3',
+          '3',
+          '2',
+          '3',
+          '2',
+          '3',
+          '3',
+          '3',
+          '3',
+          '3',
+          '7'
+      ];
+
+      this.textures.generate('dude', { data: dudeData, pixelWidth: 4, pixelHeight: 4 });
+
     this.load.audio("boom", [ 'assets/audio/boom.mp3', 'audio/boom.ogg', 'audio/boom.m4a' ]);   
     this.load.audio("kill", [ 'assets/audio/kill.mp3' ]);  
     this.load.audio("1up", [ 'assets/audio/1up.mp3' ]);  
