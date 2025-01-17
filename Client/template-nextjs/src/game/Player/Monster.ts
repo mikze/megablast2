@@ -1,6 +1,6 @@
 import { Scene } from "phaser";
 
-export class Monster
+export class Monster implements IEntity
 {
     id : string
     posX : number
@@ -16,9 +16,17 @@ export class Monster
         this.posX = x;
         this.posY = y;
         this.scene = scene;
-        this.sprite = scene.add.sprite(x + 8, y + 8, "monster").setScale(1)
+        //this.sprite = scene.add.sprite(x + 8, y + 8, "monster").setScale(1)
+        this.spriteName = "monster";
+        this.render3d = true;
         
     }
+
+    spriteName: string;
+
+    destroyed: boolean;
+
+    render3d: boolean;
     
     public Move(x:number, y:number)
     {
@@ -26,6 +34,6 @@ export class Monster
         this.posY = y;
         this.sprite.x = x;
         this.sprite.y = y;
-        this.sprite.play({ key: "monster_walk", repeat: 1 }, true);
+        //this.sprite.play({ key: "monster_walk", repeat: 1 }, true);
     }
 }

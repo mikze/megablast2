@@ -7,7 +7,7 @@ const BONUS_LOOKUP: { [key: number]: { imageKey: string, scale: number } } = {
     4: { imageKey: "fire", scale: 1 },
 };
 
-export class Bonus
+export class Bonus implements IEntity
 {
     id : string
     posX : number
@@ -24,15 +24,21 @@ export class Bonus
         this.posY = y;
         this.scene = scene;
         this.bonusType = bonusType;
-
+        this.render3d = true;
         this.createSprite();
         
     }
+
+    spriteName: string;
+
+    render3d: boolean;
+    destroyed: boolean;
     
     private createSprite(): void {
         const bonusConfig = BONUS_LOOKUP[this.bonusType];
         if (bonusConfig) {
-            this.sprite = this.scene.add.image(this.posX + 8, this.posY + 8, bonusConfig.imageKey).setScale(bonusConfig.scale);
+            this.spriteName = bonusConfig.imageKey;
+            //this.sprite = this.scene.add.image(this.posX + 8, this.posY + 8, bonusConfig.imageKey).setScale(bonusConfig.scale);
         }
     }
 }

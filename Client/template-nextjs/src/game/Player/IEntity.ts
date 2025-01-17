@@ -6,4 +6,7 @@ interface IEntity
     destructible : Boolean
     sprite : Phaser.GameObjects.Image
     Polly: Phaser.Geom.Polygon
+    render3d: boolean
+    destroyed: boolean
+    spriteName : string
 }

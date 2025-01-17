@@ -75,16 +75,17 @@ export class GameLevel extends Scene {
     }
 
     private destroyEntity(entity: IEntity) {
+        console.log(entity);
         entity.sprite.destroy();
-        if(entity !== undefined && entity.Polly !== null) {
+        if(entity !== undefined && entity.Polly !== undefined && entity.Polly !== null) {
             entity.Polly.setTo([0,0])
-            // @ts-ignore
-            console.log(entity.Polly.id);
         }
         
         if ((entity as Bonus)?.bonusType === 3) this.sound.play("1up");
         const index = this.entities.indexOf(entity);
         if (index > -1) this.entities.splice(index, 1);
+        
+        entity.destroyed = true;
     }
 
     setMap() {
@@ -262,11 +263,12 @@ export class GameLevel extends Scene {
             let player = this.getPlayerById(GameLevel.playerId);
             if(player !== undefined) {
                 this.line.setTo(this.input.mousePointer.position.x + player.x - 490, this.input.mousePointer.position.y + player.y - 330, player.x + 30, player.y + 60);
+                const angleSpeed = 0.02;
                 if(this.keyD?.isDown) {
-                    player.angle += 0.06;
+                    player.angle = player.angle + angleSpeed > 2*3.14 ? player.angle + angleSpeed - 2*3.14 : player.angle + angleSpeed;
                 }
                 if(this.keyA?.isDown) {
-                    player.angle -= 0.06;
+                    player.angle = player.angle - angleSpeed < 0 ? player.angle - angleSpeed + 2*3.14 : player.angle - angleSpeed;
                 }
                 player.Update();
             }

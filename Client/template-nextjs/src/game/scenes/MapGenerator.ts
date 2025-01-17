@@ -44,9 +44,9 @@ export class MapGenerator {
         
         MapGenerator.map.map(wall => {
                 if(!wall.destructible)
-                    wall.sprite = gameLevel.add.image(wall.posX, wall.posY, MapGenerator.mapDic[1].sheetName, MapGenerator.mapDic[1].x).setScale(1.2);
+                    wall.sprite = gameLevel.add.image(wall.posX, wall.posY, MapGenerator.mapDic[1].sheetName, MapGenerator.mapDic[1].x).setScale(0);
                 else
-                    wall.sprite = gameLevel.add.image(wall.posX, wall.posY, MapGenerator.mapDic[4].sheetName).setScale(1.2);
+                    wall.sprite = gameLevel.add.image(wall.posX, wall.posY, MapGenerator.mapDic[4].sheetName).setScale(0);
 
                     gameLevel.entities.push(wall as Wall);
             })
