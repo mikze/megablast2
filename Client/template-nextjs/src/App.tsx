@@ -15,7 +15,7 @@ function App() {
     return (
         <Provider store={store}>
             <>
-                <button className="button" onClick={() => setShowCreator(!showCreator)}>Create game!</button>
+                <button className="button" onClick={() => setShowCreator(!showCreator)}>Ceate new game</button>
                 {showCreator && <GameCreator/>}
                 <GameList/>
             </>

@@ -10,7 +10,7 @@ import Chat from '.././Chat';
 import Config from '.././Config';
 import { Connection } from '@/game/SignalR/Connection';
 import router from 'next/router';
-
+import Stats from '../Stats'
 interface Cfg {
     monsterAmount : number,
     monsterSpeed: number
@@ -109,17 +109,26 @@ function Game() {
     return (
         <Provider store={store}>
             <div id="app">
-                <div id="borderimg">
-                    <div className="container">
-                        <div className="item2">
-                            <ButtonGroup store={store}/>
+                <div className="parent">
+                    <div className="div1">
+                        <div id="borderimg">
+                            <div className="container">
+                                <div className="item2">
+                                    <ButtonGroup store={store}/>
+                                </div>
+                                <div>
+                                    <PhaserGame ref={phaserRef} currentActiveScene={currentScene}/>
+                                </div>
+                                <div>
+                                    <Chat sendMsg={sendMsg}/>
+                                </div>
+                                
+                            </div>
                         </div>
-                        <div>
-                            <PhaserGame ref={phaserRef} currentActiveScene={currentScene}/>
-                        </div>
-                        <div>
-                            <Chat sendMsg={sendMsg}/>
-                        </div>
+
+                    </div>
+                    <div className="div2" id="borderimg"><Stats/></div>
+                    <div className="div3" id="borderimg">
                         {isVisibleBackToLobby && (
                             <div>
                                 <button className="button" onClick={backToLobby}>Back to lobby</button>
@@ -131,12 +140,8 @@ function Game() {
                         {isVisibleStart && (<div>
                             <button className="button" onClick={backToServerList}>Back to server list</button>
                         </div>)}
-                        
-                        
                     </div>
-
                 </div>
-
             </div>
         </Provider>
     )

@@ -75,7 +75,7 @@ export class GameLevel extends Scene {
 
     private destroyEntity(entity: IEntity) {
         entity.sprite.destroy();
-        if ((entity as Bonus)?.bonusType === 3) this.sound.play("1up");
+        if ((entity as Bonus)?.bonusType === 3) this.sound.play("1up", {volume: 0.1});
         const index = this.entities.indexOf(entity);
         if (index > -1) this.entities.splice(index, 1);
     }
@@ -137,7 +137,7 @@ export class GameLevel extends Scene {
         fires.forEach(f => {
             f.image = this.add.image(f.posX, f.posY, "fire").setScale(0.8);
         });
-        setTimeout(() => fires.forEach(f => f.image.destroy()), 150);
+        fires.forEach((f , i)=> setTimeout(() => f.image.destroy(), 50*i));
     }
 
     recMsg(userId: string, message: string) {
@@ -172,7 +172,7 @@ export class GameLevel extends Scene {
     bombExplode(bombModel: BombModel) {
         const bomb = this.entities.find(p => p.id === bombModel.id);
         if (bomb) {
-            this.sound.play("boom");
+            this.sound.play("boom", {volume: 0.04});
             bomb.sprite.destroy();
             this.removeEntity(bombModel.id);
         }
@@ -226,14 +226,13 @@ export class GameLevel extends Scene {
                         cos = -cos;
                     if(oY > Y)
                         sin = -sin;
-                    //console.log('sin', sin);
-                    //console.log('cos', cos);
                     Connection.connection.invoke("CreateBullet", sin, cos);
                 }
             }
         });
         this.line = this.add.line(0,0,150,100,200,200,0xff0000);
         Connection.connection.invoke("GetMonsters");
+        Connection.connection.invoke("GetStatistics");
         EventBus.emit('current-scene-ready', this);
     }
 

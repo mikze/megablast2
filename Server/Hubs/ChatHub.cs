@@ -136,6 +136,15 @@ public class ChatHub(GameManager gameManager) : Hub
             }
         }
     }
+	
+	public async Task GetStatistics()
+	{
+		var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
+        var player = game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
+        
+        if (player != null)
+            await Clients.Caller.SendAsync("GetStats", player.GetStats());
+	}
 
     public async Task Start()
     {
@@ -186,7 +195,7 @@ public class ChatHub(GameManager gameManager) : Hub
     
     public async Task GetRunningAllGames()
     {
-        await Clients.Caller.SendAsync("RunningAllGames", gameManager.GetAllGames().Select(gameManager.GetGameName));
+        await Clients.Caller.SendAsync("RunningAllGames", gameManager.GetAllGames().Select(gameManager.GetGameInfo));
     }
     
     public async Task JoinToGroup(string groupName)

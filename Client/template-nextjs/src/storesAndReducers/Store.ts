@@ -4,6 +4,7 @@ import configReducer from './configReducer';
 import adminReducer from './adminReducer'
 import gamesReducer from './gamesReducer';
 import chosenGameReducer from './chosenGameReducer';
+import playerStatsReducer from './statsReducer'
 
 const store = configureStore({
     reducer: {
@@ -11,7 +12,8 @@ const store = configureStore({
         config: configReducer,
         admin: adminReducer,
         games: gamesReducer,
-        chosenGame: chosenGameReducer
+        chosenGame: chosenGameReducer,
+        playerStats: playerStatsReducer
     },
 })
 

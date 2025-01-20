@@ -42,30 +42,30 @@ function Config(props: Props) {
         {isAdmin && (
         <div>
             <Box sx={{ width: 300 }}>
-                {cfg.bombDelay}
+                Bomb delay[ms]: <b>{cfg.bombDelay}</b>
                 <Slider onChangeCommitted={(e,v) => props.sendConfig({ monsterAmount: cfg.monsterAmount, monsterSpeed: cfg.monsterSpeed, bombDelay: v })} defaultValue={cfg.bombDelay} max={5000} aria-label="Default" valueLabelDisplay="auto" />
             </Box>
             <Box sx={{ width: 300 }}>
-                {cfg.monsterAmount}
+                Amount of monsters: <b>{cfg.monsterAmount}</b>
                 <Slider onChange = {(e,v) => setVal(v as number) } value = {val} onChangeCommitted={(e,v) => props.sendConfig({ monsterAmount: v, monsterSpeed: cfg.monsterSpeed, bombDelay: cfg.bombDelay })}  defaultValue={cfg.monsterAmount} max={50} aria-label="Default" valueLabelDisplay="auto" />
             </Box>
             <Box sx={{ width: 300 }}>
-                {cfg.monsterSpeed}
+                Speed of monsters: <b>{cfg.monsterSpeed}</b>
                 <Slider onChangeCommitted={(e,v) => sendMonsterSpeed(v)} defaultValue={cfg.monsterSpeed*10} max={100.0} aria-label="Default" valueLabelDisplay="auto" />
             </Box>
         </div>)}
             {!isAdmin && (
                 <div>
                     <Box sx={{ width: 300 }}>
-                        {cfg.bombDelay}
+                        Bomb delay[ms]: <b>{cfg.bombDelay}</b>
                         <Slider value = {cfg.bombDelay} defaultValue={cfg.bombDelay} max={5000} aria-label="Default" valueLabelDisplay="auto" />
                     </Box>
                     <Box sx={{ width: 300 }}>
-                        {cfg.monsterAmount}
+                        Amount of monsters: <b>{cfg.monsterAmount}</b>
                         <Slider value = {cfg.monsterAmount} defaultValue={cfg.monsterAmount} max={50} aria-label="Default" valueLabelDisplay="auto" />
                     </Box>
                     <Box sx={{ width: 300 }}>
-                        {cfg.monsterSpeed}
+                        Speed of monsters: <b>{cfg.monsterSpeed}</b>
                         <Slider value = {cfg.monsterSpeed} defaultValue={cfg.monsterSpeed*10} max={100.0} aria-label="Default" valueLabelDisplay="auto" />
                     </Box>
                 </div>)}

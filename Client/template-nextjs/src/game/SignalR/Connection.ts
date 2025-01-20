@@ -15,11 +15,27 @@ import  configureStore  from '../../storesAndReducers/Store'
 import { setGames } from "@/storesAndReducers/gamesReducer";
 import router from "next/router";
 import { Bullet } from "../Player/Bullet";
+import { setPlayerStats } from "@/storesAndReducers/statsReducer";
 
 interface Config {
     monsterAmount : number,
     monsterSpeed: number
     bombDelay: number
+}
+
+interface PlayerStats
+{
+    lives : number,
+    bombs : number,
+    range : number,
+    speed : number
+}
+
+interface GameInfo {
+    name: string,
+    activePlayers : number,
+    maxPlayers: number,
+    passRequired: boolean
 }
 
 export class Connection {
@@ -88,6 +104,12 @@ export class Connection {
         connection.on("JoinToGame", Connection.joinToGame)
         connection.on("GoToServerList", Connection.goToServerList)
         connection.on("BulletCreated", Connection.bulletCreated)
+        connection.on("GetStats", Connection.getStats)
+    }
+
+    static getStats(stats : PlayerStats) {
+        console.log("GetStats", stats);
+        configureStore.dispatch(setPlayerStats(stats));
     }
 
     static bulletCreated(bullet: Bullet) {
@@ -105,7 +127,7 @@ export class Connection {
             .then(() => router.push('/RunGame'));
     }
 
-    static runningAllGames(games : string[]) {
+    static runningAllGames(games : GameInfo[]) {
         console.log("RunningAllGames", games);
         configureStore.dispatch(setGames({games: games}));
     }

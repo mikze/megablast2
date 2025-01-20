@@ -1,7 +1,7 @@
 import {createListenerMiddleware, createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 interface Admin {
-    isAdmin : boolean
+    isAdmin : boolean,
 }
 
 const initialState: Admin =

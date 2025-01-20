@@ -1,3 +1,4 @@
+using Server.Game.Models;
 using Server.Services;
 
 namespace Server.Game;
@@ -114,6 +115,23 @@ public class GameManager
             throw new Exception("Game not found");
 
         return name;
+    }
+    
+    public GameInfo GetGameInfo(Game game)
+    {
+        var foundGame = Games.FirstOrDefault(g => g.Game.Id == game.Id);
+        if(foundGame is null || string.IsNullOrEmpty(foundGame?.GroupName))
+            throw new Exception("Game not found");
+        
+        var gameInfo = new GameInfo()
+        {
+            Name = foundGame.GroupName,
+            ActivePlayers = foundGame.Game.GetPlayers().Count(p => p.Live),
+            MaxPlayers = 4,
+            PassRequired = false
+        };
+        
+        return gameInfo;
     }
 
     public IEnumerable<Game> GetAllGames() => Games.Select(g => g.Game).ToArray();

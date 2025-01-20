@@ -94,6 +94,7 @@ public class Player : EntityBase
     public void TakeLife(int amount = 1)
     {
         Lives -= amount;
+        _ = Game.SendToPlayer("GetStats", Id, GetStats());
         if (LifeAmount() > 0) return;
         
         Console.WriteLine($"Killed player {Id}  {Name}");
@@ -116,5 +117,15 @@ public class Player : EntityBase
     public int GetFireSize() => _fireSize;
     public void IncreaseFireSize() => _fireSize += 1;
     public void DecreaseFireSize() => _fireSize -= 1;
-    
+
+    public PlayerStats GetStats()
+    {
+        return new PlayerStats()
+        {
+            Lives = Lives,
+            Bombs = MaxBombs,
+            Speed = Speed,
+            Range = GetFireSize()
+        };
+    }
 }

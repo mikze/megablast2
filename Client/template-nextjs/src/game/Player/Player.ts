@@ -78,7 +78,7 @@ import { Bomb } from "./Bomb"
       this.dead = true;
       this.sprite.destroy();
       this.sprite = this.scene.add.sprite(this.posX, this.posY, "dead").setScale(0.8)     
-      this.scene.sound.play("kill");
+      this.scene.sound.play("kill", {volume : 0.1});
     }
 
     Alive()

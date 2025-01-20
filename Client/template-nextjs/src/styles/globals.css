@@ -51,6 +51,19 @@ body {
     font-family: Arial, Helvetica, sans-serif;
 }
 
+.parent {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    grid-column-gap: 0px;
+    grid-row-gap: 0px;
+}
+
+.div1 { grid-area: 1 / 1 / 5 / 5; }
+.div2 { grid-area: 5 / 1 / 6 / 5; }
+.div3 { grid-area: 1 / 5 / 5 / 6; }
+
+
 #borderimg {
     border: 10px solid;
     border-image: linear-gradient(#ffa700,

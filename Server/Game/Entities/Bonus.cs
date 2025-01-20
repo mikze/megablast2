@@ -41,7 +41,9 @@ public class Bonus : EntityBase
         }
 
         Destroyed = true;
-
+        
+        _ = Game.SendToPlayer("GetStats", player.Id, player.GetStats());
+        
         return coll;
     }
 }

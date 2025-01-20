@@ -233,6 +233,13 @@ public class Game
         }
     }
 
+    public async Task SendToPlayer(string methodName, string playerId, object? args)
+    {
+        var players = Players.Where(p => p.Id == playerId).Select(p => p.Id).ToArray();
+        Console.WriteLine($"SendToPlayer {methodName} {playerId} {args} {string.Join("", players)}");
+        await _hubGameService?.HubContext.Clients.Clients(players).SendAsync(methodName, args)!;
+    }
+    
     public async Task SendToAll(string methodName, object? args)
     {
        await _hubGameService?.HubContext.Clients.Group(_groupName).SendAsync(methodName, args)!; 

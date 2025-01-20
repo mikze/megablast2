@@ -1,7 +1,13 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
+interface GameInfo {
+    name: string,
+    activePlayers : number,
+    maxPlayers: number,
+    passRequired: boolean
+}
 interface GamesState {
-    games: string[];
+    games: GameInfo[];
 }
 
 const initialState: GamesState = {

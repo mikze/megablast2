@@ -55,6 +55,7 @@ export class Lobby extends Scene {
         Connection.lobby = this;
         await Connection.connection.invoke("GetConfig");
         await Connection.connection.invoke("AmIAdmin");
+        await Connection.connection.invoke("GetStatistics");
         return Promise.resolve();
     }
 
