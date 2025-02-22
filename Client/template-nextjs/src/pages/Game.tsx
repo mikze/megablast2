@@ -11,6 +11,7 @@ import Config from '.././Config';
 import { Connection } from '@/game/SignalR/Connection';
 import router from 'next/router';
 import Stats from '../Stats'
+import AddNpc from '@/AddNpc';
 interface Cfg {
     monsterAmount : number,
     monsterSpeed: number
@@ -98,6 +99,7 @@ function Game() {
             <div>
                 {!isVisibleBackToLobby && <Config sendConfig={sendConfig} store={store}/>}
                 {!isVisibleBackToLobby && <ChangeName changeName={changeName}/>}
+                {!isVisibleBackToLobby && <AddNpc />}
             </div>
         </div>
     );

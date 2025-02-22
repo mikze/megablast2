@@ -7,6 +7,6 @@ public class Wall : EntityBase
     {
         Id = Guid.NewGuid().ToString();
         Collision = true;
-        Width = Height = 33;
+        Width = Height = 45;
     }
 }

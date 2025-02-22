@@ -24,8 +24,8 @@ public class Player : EntityBase
     {
         BombDelay = game.BombDelay;
         Destructible = true;
-        Width = 36;
-        Height = 43;
+        Width = Height = 45;
+
         Collision = true;
     }
     public override bool CheckCollision(IEntity entity)

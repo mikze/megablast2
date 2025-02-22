@@ -17,26 +17,35 @@ public class ChatHub(GameManager gameManager) : Hub
     public async Task SendMessage(string user, string message)
     {
         var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
+        if (message.Contains("jkl"))
+        {
+            var y = int.Parse(message.Split(",")[1]);
+            var x = int.Parse(message.Split(",")[2]);
+            game.Npcs.First().CreateDest(y, x);
+            return;
+        }
         var player = game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
         Console.WriteLine($"Received {user}: {message}");
         if (player != null)
         {
             Console.WriteLine("Sending");
-            await Clients.Group(gameManager.GetGameName(game)).SendAsync("ReceiveMessage",Context.ConnectionId, player.Name, message);
+            await Clients.Group(gameManager.GetGameName(game))
+                .SendAsync("ReceiveMessage", Context.ConnectionId, player.Name, message);
         }
     }
+
     public async Task RestartGame()
     {
         var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
         if (game.IsMasterPlayer(Context.ConnectionId))
         {
-            foreach(var c in _clients)
+            foreach (var c in _clients)
                 Console.WriteLine($"RestartGame to client {c}");
 
             await game.RestartGame();
         }
     }
-    
+
     public async Task SetConfig(GameConfig config)
     {
         var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
@@ -56,6 +65,7 @@ public class ChatHub(GameManager gameManager) : Hub
         else
             Console.WriteLine("Player not found");
     }
+
     public async Task GetConfigAll()
     {
         var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
@@ -67,7 +77,7 @@ public class ChatHub(GameManager gameManager) : Hub
         var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
         await Clients.Caller.SendAsync("GetConfig", game.GetConfig());
     }
-    
+
     public void MovePlayer(int moveDirection)
     {
         var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
@@ -91,12 +101,13 @@ public class ChatHub(GameManager gameManager) : Hub
         var monsters = game.GetMonsters();
         Clients.Caller.SendAsync("GetMonsters", monsters);
     }
+
     public void ChangeName(string newName)
     {
         var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
         var player = game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
         if (player is null) return;
-        
+
         game.ChangeName(Context.ConnectionId, newName);
         Clients.Group(gameManager.GetGameName(game)).SendAsync("NameChanged", Context.ConnectionId, newName);
     }
@@ -107,7 +118,7 @@ public class ChatHub(GameManager gameManager) : Hub
         var player = game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
         if (player is null) return;
         var newBullet = game.CreateBullet(player, sin, cos);
-        if(newBullet != null)
+        if (newBullet != null)
             Clients.Group(gameManager.GetGameName(game)).SendAsync("BulletCreated", newBullet);
     }
 
@@ -116,13 +127,14 @@ public class ChatHub(GameManager gameManager) : Hub
         var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
         var player = game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
         if (player is null) return;
-        
+
         game.ChangeSkin(Context.ConnectionId, newSkinName);
         Clients.Group(gameManager.GetGameName(game)).SendAsync("SkinChanged", Context.ConnectionId, newSkinName);
     }
 
-    public async Task GetMap() => await Clients.Caller.SendAsync("GetMap", gameManager.GetGameByConnectionId(Context.ConnectionId).GetMap());
-    
+    public async Task GetMap() =>
+        await Clients.Caller.SendAsync("GetMap", gameManager.GetGameByConnectionId(Context.ConnectionId).GetMap());
+
     public async Task BackToLobby()
     {
         var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
@@ -136,15 +148,15 @@ public class ChatHub(GameManager gameManager) : Hub
             }
         }
     }
-	
-	public async Task GetStatistics()
-	{
-		var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
+
+    public async Task GetStatistics()
+    {
+        var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
         var player = game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
-        
+
         if (player != null)
             await Clients.Caller.SendAsync("GetStats", player.GetStats());
-	}
+    }
 
     public async Task Start()
     {
@@ -167,7 +179,7 @@ public class ChatHub(GameManager gameManager) : Hub
             await Clients.Caller.SendAsync("JoinToGame", gameName);
         }
     }
-    
+
     public Task BackToServerList()
     {
         try
@@ -175,7 +187,7 @@ public class ChatHub(GameManager gameManager) : Hub
             var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
             if (game.IsMasterPlayer(Context.ConnectionId))
                 gameManager.DestroyGame(game);
-            
+
             return Task.CompletedTask;
         }
         catch (Exception e)
@@ -183,19 +195,27 @@ public class ChatHub(GameManager gameManager) : Hub
             Console.WriteLine(e);
             throw;
         }
-        
     }
-    
+
     public Task CloseGame(string gameName)
     {
         Console.WriteLine("Destroy game");
         gameManager.DestroyGame(gameName);
         return Task.CompletedTask;
     }
-    
+
     public async Task GetRunningAllGames()
     {
         await Clients.Caller.SendAsync("RunningAllGames", gameManager.GetAllGames().Select(gameManager.GetGameInfo));
+    }
+
+    public async Task AddNpc()
+    {
+        Console.WriteLine("Add Npc");
+        var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
+        game?.AddNpcPlayer();
+        if (game != null)
+            await Clients.Group(gameManager.GetGameName(game)).SendAsync("Connected", game.GetPlayers().Where(p => p.Live).ToArray());
     }
     
     public async Task JoinToGroup(string groupName)
@@ -229,7 +249,7 @@ public class ChatHub(GameManager gameManager) : Hub
             }
         }
     }
-    
+
 
     public override Task OnDisconnectedAsync(Exception? exception)
     {
@@ -239,12 +259,14 @@ public class ChatHub(GameManager gameManager) : Hub
         {
             var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
             game.RemovePlayer(Context.ConnectionId);
-            Clients.Group(gameManager.GetGameName(game)).SendAsync("Disconnected", game.GetPlayers().Where(p => p.Live).ToArray(), Context.ConnectionId);
+            Clients.Group(gameManager.GetGameName(game)).SendAsync("Disconnected",
+                game.GetPlayers().Where(p => p.Live).ToArray(), Context.ConnectionId);
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
         }
+
         return base.OnDisconnectedAsync(exception);
     }
 }

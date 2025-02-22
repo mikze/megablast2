@@ -147,10 +147,10 @@ export class GameLevel extends Scene {
     recMovePlayer(x: number, y: number, id: string) {
         const player = this.getPlayerById(id);
         player?.Move(x, y);
-        if (GameLevel.playerId === id && player && !this.cameraSet) {
-            this.camera.startFollow(player);
-            this.cameraSet = true;
-        }
+        //if (GameLevel.playerId === id && player && !this.cameraSet) {
+          //  this.camera.startFollow(player);
+            //this.cameraSet = true;
+        //s}
     }
 
     nameChanged(newName: string, id: string) {

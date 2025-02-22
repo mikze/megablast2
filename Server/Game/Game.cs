@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.SignalR;
 using Server.Game.Entities;
 using Server.Game.Interface;
+using Server.Game.Npc;
 using Server.Map;
 using Server.Services;
-
+using Server.Game.Npc;
 namespace Server.Game;
 
 public enum MoveDirection
@@ -33,6 +34,7 @@ public class Game
     private readonly MonsterFactory _monsterFactory;
     private readonly PlayerHandler _playerHandler = new ();
     private readonly string _groupName;
+    public List<ComputerPlayer> Npcs { get; set; } = [];
 
     public Game(HubGameService hubGameService, string groupName)
     {
@@ -127,9 +129,9 @@ public class Game
     public IEnumerable<IMonster> GetMonsters() => GetEntities().Where( e => e is IMonster).Cast<IMonster>();
     public IEnumerable<IMoveable> GetMoveable() => GetEntities().Where( e => e is IMoveable).Cast<IMoveable>();
 
-    public void AddPlayer(string id)
+    public Player? AddPlayer(string id)
     {
-        if (!GetFreePlayerSlotNumber(out var idPlayer)) return;
+        if (!GetFreePlayerSlotNumber(out var idPlayer)) return null;
 
         var newPlayer = idPlayer switch
         {
@@ -140,9 +142,11 @@ public class Game
             _ => null
         };
 
-        if (newPlayer == null) return;
+        if (newPlayer == null) return null;
         Players[idPlayer] = newPlayer;
         AddEntities(newPlayer);
+        
+        return newPlayer;
     }
 
     private bool GetFreePlayerSlotNumber(out int number)
@@ -310,4 +314,64 @@ public class Game
     }
 
     public IEnumerable<IBullet> GetBullets() => GetEntities().Where( e => e is IBullet).Cast<IBullet>();
+
+    public void AddNpcPlayer()
+    {
+        var player = AddPlayer("NPC1");
+        if (player is null) return;
+        
+        var newNpc = new ComputerPlayer(player);
+        Npcs.Add(newNpc);
+    }
+
+    public void UpdateNpc()
+    {
+        
+        foreach (var npc in Npcs)
+            npc.Update();
+    }
+
+    public List<(double, double)> GetSafePositionsNear((double PosX, double PosY) valueTuple)
+    {
+        // Extract X and Y from the input tuple
+        var (posX, posY) = valueTuple;
+
+        // Set a danger radius (e.g., how far bombs or hazards affect an area)
+        const double dangerRadius = 2.0;
+
+        // Get all empty coordinates from the map
+        var emptyPositions = FindAllEmptyCoordinates();
+
+        // Determine which empty positions are outside of the danger radius
+        var safePositions = emptyPositions
+            .Where(coord => 
+            {
+                // Calculate distance from the given position
+                var distance = Math.Sqrt(Math.Pow(coord.X - posX, 2) + Math.Pow(coord.Y - posY, 2));
+                return distance > dangerRadius;
+            })
+            .ToList();
+
+        // Return the list of safe positions
+        return safePositions;
+    }
+
+    public bool IsObstacle(double p0, double playerPosY)
+    {
+        // Retrieve all Walls (obstacles) in the game.
+        var walls = GetMap();
+
+        // Check if the given position matches any Wall's position.
+        foreach (var wall in walls)
+        {
+            // If the coordinates match, this position is an obstacle.
+            if (Math.Abs(wall.PosX - p0) < 0.1 && Math.Abs(wall.PosY - playerPosY) < 0.1)
+            {
+                return true;
+            }
+        }
+
+        // No matching Wall means the position is not an obstacle.
+        return false;
+    }
 }

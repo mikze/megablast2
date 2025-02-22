@@ -41,6 +41,7 @@ public class HubGameService : BackgroundService
                 {
                     RemoveDestroyedEntities(game);
                     if (!game.Live) continue;
+                    UpdateNpc(game);
                     MoveLivePlayers(game);
                     MoveLiveMonster(game);
                     MoveLiveBullets(game);
@@ -53,6 +54,11 @@ public class HubGameService : BackgroundService
                 }
             }
         }
+    }
+
+    private void UpdateNpc(Game.Game game)
+    {
+        game.UpdateNpc();
     }
 
     private void RemoveDestroyedEntities(Game.Game game)
