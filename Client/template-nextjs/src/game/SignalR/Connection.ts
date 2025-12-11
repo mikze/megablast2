@@ -42,7 +42,7 @@ export class Connection {
     static connection: HubConnection;
     static gameLevel: GameLevel;
     static lobby: Lobby;
-    private static URL = "http://192.168.100.100:5166/Chat";
+    private static URL = "http://192.168.100.3:5166/Chat";
 
     static CreateConnection() {
         Connection.connection = new HubConnectionBuilder()

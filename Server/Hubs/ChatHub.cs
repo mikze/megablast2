@@ -1,13 +1,14 @@
+using Game.Game;
+using Game.Game.Entities;
+using Game.Game.Models;
 using Microsoft.AspNetCore.SignalR;
-using Server.Game;
-using Server.Game.Entities;
-using Server.Game.Models;
+using Server.Services;
 
 namespace Server.Hubs;
 
 public class ChatHub(GameManager gameManager) : Hub
 {
-    private Game.Game GetGame(string gameName)
+    private Game.Game.Game GetGame(string gameName)
     {
         return gameManager.GetGameByGroupName(gameName);
     }
@@ -21,7 +22,7 @@ public class ChatHub(GameManager gameManager) : Hub
         {
             var y = int.Parse(message.Split(",")[1]);
             var x = int.Parse(message.Split(",")[2]);
-            game.Npcs.First().CreateDest(y, x);
+            //game.Npcs.First().CreateDest(y, x);
             return;
         }
         var player = game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
@@ -114,12 +115,12 @@ public class ChatHub(GameManager gameManager) : Hub
 
     public void CreateBullet(double sin, double cos)
     {
-        var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
+        /*var game = gameManager.GetGameByConnectionId(Context.ConnectionId);
         var player = game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
         if (player is null) return;
         var newBullet = game.CreateBullet(player, sin, cos);
         if (newBullet != null)
-            Clients.Group(gameManager.GetGameName(game)).SendAsync("BulletCreated", newBullet);
+            Clients.Group(gameManager.GetGameName(game)).SendAsync("BulletCreated", newBullet);*/
     }
 
     public void ChangeSkin(string newSkinName)
@@ -143,7 +144,7 @@ public class ChatHub(GameManager gameManager) : Hub
             var player = game.GetPlayers().FirstOrDefault(p => p.Id == Context.ConnectionId);
             if (player != null)
             {
-                game.Live = false;
+                game.GameState = GameState.InLobby;
                 await Clients.Group(gameManager.GetGameName(game)).SendAsync("BackToLobby");
             }
         }
@@ -164,6 +165,7 @@ public class ChatHub(GameManager gameManager) : Hub
         if (game.IsMasterPlayer(Context.ConnectionId))
         {
             game.Live = true;
+            game.GameState = GameState.InGame;
             await game.RestartGame();
             var gameName = gameManager.GetGameName(game);
             await Clients.Group(gameName).SendAsync("Start");

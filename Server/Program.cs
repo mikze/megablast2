@@ -1,4 +1,4 @@
-using Server.Game;
+using Game.Game;
 using Server.Hubs;
 using Server.Services;
 
@@ -19,8 +19,8 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddSignalR();
+builder.Services.AddSingleton<ICommunicateHandler,HubContextAdapter>();
 builder.Services.AddSingleton<GameManager>();
-builder.Services.AddHostedService<HubGameService>();
 
 var app = builder.Build();
 app.UseCors(myAllowSpecificOrigins);
