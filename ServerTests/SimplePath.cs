@@ -18,8 +18,8 @@ public class SimplePath
         if (map != null) Assert.That(map, Has.Length.EqualTo(272));
         if (map == null) Assert.Fail();
         if (map == null) return;
-        var a = map.Select(w => w.node).First(n => n is { Y: 2, X: 9 });
-        var b = map.Select(w => w.node).First(n => n is { Y: 8, X: 12 });
+        var a = map.Select(w => w.Node).First(n => n is { Y: 2, X: 9 });
+        var b = map.Select(w => w.Node).First(n => n is { Y: 8, X: 12 });
         var c = Node.DepthFirstSearch(a, b).ToArray();
 
         var visitedNodes = new HashSet<Node>();

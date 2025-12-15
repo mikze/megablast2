@@ -1,4 +1,6 @@
 using Game.Game.Entities;
+using Game.Game.Helpers;
+using Game.Game.Npc.PathFinding;
 
 namespace Game.Game.Npc;
 
@@ -6,7 +8,7 @@ public class ComputerPlayer
 {
     private Player Player { get; set; }
     private Random RandomGenerator { get; set; }
-    public List<Target> destinationTargets { get; set; } = new List<Target>();
+    public List<Target> DestinationTargets { get; set; } = new List<Target>();
 
     // Constructor to initialize the ComputerPlayer with the associated Player object.
     public ComputerPlayer(Player player)
@@ -19,6 +21,7 @@ public class ComputerPlayer
     public void MoveToward()
     {
         var currentDestination = GetCurrentDestination();
+        Console.WriteLine($"Current destination: {currentDestination}");
         if (currentDestination == null) return;
         
         if (!currentDestination.Xdone && Math.Abs((int)Player.PosX - (int)currentDestination.Dest.posX) != 0)
@@ -68,10 +71,10 @@ public class ComputerPlayer
     }
 
     void RemoveDestination(Target target)
-        => destinationTargets.Remove(target);
-    
+        => DestinationTargets.Remove(target);
+
     Target? GetCurrentDestination()
-        => destinationTargets.FirstOrDefault(t => t.Active);
+        => DestinationTargets.FirstOrDefault(t => t.Active);
     
 
     // Check if the path to the destination is blocked
@@ -115,7 +118,9 @@ public class ComputerPlayer
     private void MoveToSafePosition(Game game)
     {
         // Basic logic: pick a random nearby position that is not in blast radius
+        Console.WriteLine($"Player position is: {Player.PosX} {Player.PosY}");
         var safePositions = game.GetSafePositionsNear((Player.PosX, Player.PosY));
+        Console.WriteLine($"Safe positions: {safePositions.Count}");
         if (safePositions.Count > 0)
         {
             var safePosition = safePositions[RandomGenerator.Next(safePositions.Count)];
@@ -124,7 +129,7 @@ public class ComputerPlayer
     }
 
     // Convert a position into a move direction
-    private MoveDirection GetDirectionTowards((double posY, double posX) target)
+    private MoveDirection GetDirectionTowards((double posX, double posY) target)
     {
         if (Player.PosX < target.posX) return MoveDirection.Right;
         if (Player.PosX > target.posX) return MoveDirection.Left;
@@ -143,17 +148,33 @@ public class ComputerPlayer
             MoveToward();
       //  }
     }
-
-    public void CreateDest(int y , int x)
+    
+    public void CreateDest(int y, int x)
     {
-        //Console.WriteLine("Create new destination");
-        //var map = Player.Game.GetAllMap();
-        //var currentNode = map.Where(w => w.node.X == 15 && w.node.Y == 2)?.Select(w => w.node).FirstOrDefault();
-        //var destinationNode = map.Where(w => w.node.X == x && w.node.Y == y).Select(w => w.node).FirstOrDefault();
-        //var nodes = Node.DepthFirstSearch(currentNode, destinationNode);
+        Console.WriteLine($"Creating destination at {x},{y}");
+        // Get all map walls/tiles; you likely want a node graph based on empty tiles
+        var map = Player.Game.GetEntities<Wall>().Cast<Wall>();
 
-        //if (nodes == null) return;
-        //foreach (var node in nodes)
-            //destinationTargets.Add(node.ToTarget());
+        // Choose starting node based on current player grid position
+        var startTileX = (int)Math.Round(Player.PosX / 50.0);
+        var startTileY = (int)Math.Round(Player.PosY / 50.0);
+
+        var currentNode = map.Where(w => w.Node.X == startTileX && w.Node.Y == startTileY)
+            .Select(w => w.Node)
+            .FirstOrDefault();
+
+        var (dx, dy) = Helper.ToTilesFromPixels(x, y);
+        var destinationNode = map.Select(w => w.Node)
+            .FirstOrDefault(n => n.X == x && n.Y == y);
+
+        if (currentNode == null || destinationNode == null)
+            return;
+
+        var nodes = Node.DepthFirstSearch(currentNode, destinationNode);
+        if (nodes == null) return;
+
+        DestinationTargets.Clear();
+        foreach (var node in nodes)
+            DestinationTargets.Add(node.ToTarget());
     }
 }

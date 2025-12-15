@@ -8,14 +8,14 @@ public abstract class World : IWorld
     public bool Live { get; set; } = true;
     public bool Pause { get; set; } = false;
     public string GroupName { get; set; }
-    protected List<IEntity> _entities = [];
+    protected List<IEntity> Entities = [];
     private readonly object _lockObject = new ();
     
     public void RemoveEntities<T>() where T : IEntity
     {
         lock (_lockObject)
         {
-            _entities.RemoveAll(x => x is T);
+            Entities.RemoveAll(x => x is T);
         }
     }
     
@@ -23,7 +23,7 @@ public abstract class World : IWorld
     {
         lock (_lockObject)
         {
-            _entities.AddRange(entities);
+            Entities.AddRange(entities);
         }
     }
 
@@ -31,7 +31,7 @@ public abstract class World : IWorld
     {
         lock (_lockObject)
         {
-            _entities.Remove(entity);
+            Entities.Remove(entity);
         }
     }
 
@@ -41,7 +41,7 @@ public abstract class World : IWorld
         {
             foreach (var entity in entities)
             {
-                _entities.Remove(entity);
+                Entities.Remove(entity);
             }
         }
     }
@@ -50,7 +50,7 @@ public abstract class World : IWorld
     {
         lock (_lockObject)
         {
-            _entities.Clear();
+            Entities.Clear();
         }
     }
 
@@ -58,7 +58,7 @@ public abstract class World : IWorld
     {
         lock (_lockObject)
         {
-            return _entities.ToArray();
+            return Entities.ToArray();
         }
     }
     
@@ -66,7 +66,7 @@ public abstract class World : IWorld
     {
         lock (_lockObject)
         {
-            return _entities.OfType<T>().Cast<IEntity>().ToArray();
+            return Entities.OfType<T>().Cast<IEntity>().ToArray();
         }
     }
 
@@ -74,7 +74,7 @@ public abstract class World : IWorld
     {
         lock (_lockObject)
         {
-            _entities.Add(entity);
+            Entities.Add(entity);
         }
     }
     public event Action<TimeSpan>? OnUpdate; 
@@ -84,14 +84,14 @@ public abstract class World : IWorld
         OnUpdate?.Invoke(delta);
         lock (_lockObject)
         {
-            var entities = _entities.ToArray();
+            var entities = Entities.ToArray();
             foreach (var entity in entities)
             {
                 if (entity.Destroyed) continue;
                 entity.Update();
             }
 
-            _entities.RemoveAll(e => e.Destroyed);
+            Entities.RemoveAll(e => e.Destroyed);
         }
     }
 }

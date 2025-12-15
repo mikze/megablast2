@@ -1,3 +1,4 @@
+using Game.Game.Helpers;
 using Game.Game.Npc.PathFinding;
 using GameEngine.Core;
 using GameEngine.Interface;
@@ -8,7 +9,8 @@ public class Wall : EntityBase
 {
     private readonly bool _empty;
     public bool Empty  => Destroyed || _empty;
-    public Node node { get; set; }
+    public Node Node => new() { IsWalkable = Empty };
+    public (int x, int y) Coord => Helper.ToTilesFromPixels(PosX, PosY, 50);
     public Wall(IWorld game, bool empty = false) : base(game)
     {
         Id = Guid.NewGuid().ToString();

@@ -50,13 +50,6 @@ public static class MapHandler
                         Destructible = x != 1
                     };
                     
-                    var node = new Node(wall)
-                    {
-                        X = localX,
-                        Y = localY
-                    };
-                    
-                    wall.node = node;
                     _walls?.Add(wall);
                 }
                 else
@@ -70,12 +63,6 @@ public static class MapHandler
                         PosY = posY,
                         Destructible = x != 1
                     };
-                    var node = new Node(wall)
-                    {
-                        X = localX,
-                        Y = localY
-                    };
-                    wall.node = node;
                     
                     _walls?.Add(wall);
                 }

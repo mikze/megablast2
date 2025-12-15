@@ -9,10 +9,7 @@ public class MonsterFactory(int monsterAmount, Game game)
 
     public void GenerateMonsters()
     {
-        //game.RemoveEntities(typeof(BasicMonster));
-        //game.RemoveEntities(typeof(GhostMonster));
         game.RemoveEntities<IMoveable>();
-        //game.RemoveEntities(null);
         var coords = game.FindAllEmptyCoordinates().ToArray();
         Console.WriteLine($"Found {coords.Length} free spots");
         var rnd = new Random();

@@ -4,20 +4,19 @@ namespace Game.Game.Npc.PathFinding;
 
 public class Node : IEqualityComparer<Node>
 {
-    public Node(Wall wall)
+    public Node()
     {
-        Wall = wall;
         Nodes.Add(this);
     }
 
     public int X { get; set; }
     public int Y { get; set; }
-    private Wall Wall { get; }
+    public bool IsWalkable { get; set; }
     private static List<Node> Nodes { get; set; } = [];
     
     public IEnumerable<Node> Neighbours()
     {
-        var onlyEmptySpaces = Nodes.Where(n => n.Wall.Empty || n.Wall.Destroyed);
+        var onlyEmptySpaces = Nodes.Where(n => n.IsWalkable);
         var asd1 = Nodes.Where(a => a.X == X && a.Y == Y + 1);
         var asd = onlyEmptySpaces.Where(a => a.X == X && a.Y == Y+1);
         var toReturn = new List<Node>();
@@ -41,38 +40,27 @@ public class Node : IEqualityComparer<Node>
         bool IsLeftNeighbour(Node node) => node.X == X - 1 && node.Y == Y;
         bool IsRightNeighbour(Node node) => node.X == X + 1 && node.Y == Y;
     }
-
-    private bool Visited { get; set; }
     
-    public static List<Node>? DepthFirstSearch(Node currentNode, Node targetNode)
+    public static List<Node>? DepthFirstSearch(Node start, Node target)
     {
-        try
+        var visited = new HashSet<Node>();
+        return Dfs(start, target, visited);
+
+        static List<Node>? Dfs(Node current, Node target, HashSet<Node> visited)
         {
-            currentNode.Visited = true;
+            if (!visited.Add(current)) return null; // already visited
+            if (current.X == target.X && current.Y == target.Y)
+                return new List<Node> { current };
 
-            if (currentNode == targetNode)
+            foreach (var nb in current.Neighbours())
             {
-                return new List<Node> { currentNode };
-            }
-
-            foreach (var neighbour in currentNode.Neighbours())
-            {
-                if (!neighbour.Visited)
+                var path = Dfs(nb, target, visited);
+                if (path != null)
                 {
-                    var path = DepthFirstSearch(neighbour, targetNode);
-                    if (path != null)
-                    {
-                        path.Insert(0, currentNode);
-                        return path;
-                    }
+                    path.Insert(0, current);
+                    return path;
                 }
             }
-
-            return null;
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
             return null;
         }
     }

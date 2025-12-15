@@ -1,4 +1,5 @@
 using Game.Game;
+using Game.Game.Interface;
 using Microsoft.AspNetCore.SignalR;
 using Server.Hubs;
 

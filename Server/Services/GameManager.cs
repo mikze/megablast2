@@ -1,4 +1,5 @@
 using Game.Game;
+using Game.Game.Interface;
 using Game.Game.Models;
 using GameEngine;
 
@@ -12,7 +13,7 @@ class GameContext(GameLoop game, string groupName)
 }
 public class GameManager(ICommunicateHandler communicateHandler)
 {
-    private int gameId;
+    private int _gameId;
     
     private List<GameContext> Games { get; } = [];
 

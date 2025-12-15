@@ -39,8 +39,9 @@ public class Game : World, ICommunicateHandler
     private double MonsterSpeed { get; set; } = 1.3;
     public int BombDelay { get; private set; } = 2000;
     private readonly MonsterFactory _monsterFactory;
-    private readonly PlayerHandler _playerHandler = new ();
-    private List<ComputerPlayer> Npcs { get; set; } = [];
+    private TimeSpan _sendPlayerLocationsAccumulator = TimeSpan.Zero;
+    private static readonly TimeSpan SendPlayerLocationsInterval = TimeSpan.FromMilliseconds(20); // 10 Hz
+    public List<ComputerPlayer> Npcs { get; set; } = [];
 
     public Game(ICommunicateHandler hubGameService, string groupName)
     {
@@ -98,9 +99,9 @@ public class Game : World, ICommunicateHandler
         lock (_lockObject)
         {
             if (type is null)
-                _entities = [];
+                Entities = [];
             else
-                _entities.RemoveAll(e => e.GetType() == type);
+                Entities.RemoveAll(e => e.GetType() == type);
         }
     }
 
@@ -153,7 +154,7 @@ public class Game : World, ICommunicateHandler
         player.Live = false;
         lock (_lockObject)
         {
-            _entities.Remove(player);
+            Entities.Remove(player);
         }
     }
 
@@ -249,7 +250,7 @@ public class Game : World, ICommunicateHandler
     {
         lock (_lockObject)
         {
-            _entities.RemoveAll(e => e.Destroyed);
+            Entities.RemoveAll(e => e.Destroyed);
         }
     }
     
@@ -280,6 +281,14 @@ public class Game : World, ICommunicateHandler
         
         var newNpc = new ComputerPlayer(player);
         Npcs.Add(newNpc);
+        
+        // Choose some destination tile (e.g., random reachable)
+        var empties = FindAllEmptyCoordinates(); // returns (X, Y)
+        if (empties.Count <= 0) return;
+        
+        Console.WriteLine("Empties are present");
+        var (x, y) = empties[Random.Shared.Next(empties.Count)];
+        newNpc.CreateDest((int)y, (int)x);
     }
 
     private void UpdateNpc(TimeSpan delta)
@@ -335,6 +344,13 @@ public class Game : World, ICommunicateHandler
     
     private void SendMonstersLocations(TimeSpan delta)
     {
+        _sendPlayerLocationsAccumulator += delta;
+        if (_sendPlayerLocationsAccumulator < SendPlayerLocationsInterval)
+            return;
+
+        // keep leftover time to reduce drift (important if delta varies)
+        _sendPlayerLocationsAccumulator -= SendPlayerLocationsInterval;
+
         var monsters = GetEntities<BasicMonster>().Where(p => p is { Destroyed: false });
         _ = SendToAll("MoveMonsters",GroupName, monsters);
     }
@@ -361,8 +377,15 @@ public class Game : World, ICommunicateHandler
     
     private void SendPlayerLocations(TimeSpan delta)
     {
+        _sendPlayerLocationsAccumulator += delta;
+        if (_sendPlayerLocationsAccumulator < SendPlayerLocationsInterval)
+            return;
+
+        // keep leftover time to reduce drift (important if delta varies)
+        _sendPlayerLocationsAccumulator -= SendPlayerLocationsInterval;
+
         var playerModels = GetPlayers().Select(p => new PlayerModel(p)).ToArray();
-        _ = SendToAll("MovePlayer",GroupName, playerModels);
+        _ = SendToAll("MovePlayer", GroupName, playerModels);
     }
     
     private void RemoveDestroyedEntities(TimeSpan delta)
@@ -374,13 +397,4 @@ public class Game : World, ICommunicateHandler
 
         RemoveDestroyedEntities();
     }
-    
-}
-
-public interface ICommunicateHandler
-{
-    public Task SendToAll(string methodName, string groupName, object? args);
-    public Task SendToAll(string methodName, string groupName, object? args, object? args2);
-    public Task SendToAll(string methodName, string groupName, object? args, object? args2, object? args3);
-    public Task SendToPlayer(string methodName, string playerId, object? args);
 }
